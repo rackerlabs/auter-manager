@@ -1,0 +1,33 @@
+---
+- hosts: all
+  vars:
+    csv_file: ./auter-audit-{{ ansible_date_time.date }}.csv
+    
+  tasks:
+    - script: /root/auter-management/auter_reporter/auter-audit.sh -c
+      register: auter_audit_output
+     
+#    - debug: msg={{ auter_audit_output.stdout_lines[3] }}
+
+    - local_action: stat path={{ csv_file }}
+      become: False
+      register: csv
+
+    - name: Write header
+      become: False
+      local_action: lineinfile
+                    create=yes
+                    state=present
+                    dest={{ csv_file }}
+                    line='DeviceNumber,Hostname,Version,Status,LastUpdate'
+      when: csv.stat.exists == False
+
+    - name: Append output to CSV file
+      become: False
+      local_action: lineinfile
+                    create=yes
+                    state=present
+                    dest={{ csv_file }}
+                    line={{ auter_audit_output.stdout_lines[3] }}
+...
+

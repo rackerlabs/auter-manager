@@ -1,0 +1,5 @@
+host,schedule_group,time
+lb01,wednesday,1:00
+app01,tuesday,2:10
+app02,tuesday,4:15
+db01,tuesday,5:20

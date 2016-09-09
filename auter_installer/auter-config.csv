@@ -1,0 +1,2 @@
+name,excludes,AUTOREBOOT,PACKAGEMANAGEROPTIONS,MAXDELAY
+auter-test6,kernel* mysql*,yes,,100

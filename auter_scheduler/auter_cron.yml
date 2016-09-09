@@ -1,0 +1,25 @@
+---
+- hosts: all
+  #var_files:
+  #  - schedules.yml
+  tasks:
+#    - debug:
+#        msg: "{{ schedule_groups[lookup('csvfile', inventory_hostname + ' file=schedule_list.csv col=1 delimiter=,')]}}"
+    - name: Add cron job
+      cron: 
+        name: "{{ item.name }}"
+        cron_file: "{{ item.cron_file }}"
+        minute: "{{ lookup('csvfile', inventory_hostname + ' file=schedule_list.csv col=2 delimiter=,').split(':')[1] }}"
+        hour: "{{ lookup('csvfile', inventory_hostname + ' file=schedule_list.csv col=2 delimiter=,').split(':')[0] }}"
+        weekday: "{{ item.weekday }}"
+        user: "{{ item.user }}"
+        job: "{{ item.job }}"
+      with_items: "{{ schedule_groups[lookup('csvfile', inventory_hostname + ' file=schedule_list.csv col=1 delimiter=,')].add }}"
+
+    - name: Remove cron job
+      cron:
+        name: "{{ item.name }}"
+        cron_file: "{{ item.cron_file }}"
+        state: absent
+      with_items: "{{ schedule_groups[lookup('csvfile', inventory_hostname + ' file=schedule_list.csv col=1 delimiter=,')].remove }}"
+...
