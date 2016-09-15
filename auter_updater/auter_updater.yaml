@@ -44,7 +44,8 @@
         src: ./getData
 
     - name: Check if there are any pre-apply scripts
-      find: paths=/var/lib/auter/pre-apply.d file_type=directory patterns="*"
+      shell: find /var/lib/auter/pre-apply.d -type f | wc -l
+      ignore_errors: True
       register: pre-apply 
 
     - name: copy all scripts to /etc/auter/pre-apply.d/
@@ -52,7 +53,8 @@
       when: pre-apply.matched|int != 0
       
     - name: Check if there are any post-apply scripts
-      find: paths=/var/lib/auter/post-apply.d file_type=directory patterns="*"
+      shell: find /var/lib/auter/post-apply.d -type f | wc -l
+      ignore_errors: True
       register: post-apply 
 
     - name: copy all scripts to /etc/auter/post-apply.d/
@@ -60,7 +62,8 @@
       when: post-apply.matched|int != 0
      
     - name: Check if there are any pre-reboot scripts
-      find: paths=/var/lib/auter/pre-reboot.d file_type=directory patterns="*"
+      shell: find /var/lib/auter/pre-reboot.d -type f | wc -l
+      ignore_errors: True
       register: pre-reboot 
 
     - name: copy all scripts to /etc/auter/pre-reboot.d/
@@ -68,7 +71,8 @@
       when: pre-reboot.matched|int != 0
       
     - name: Check if there are any post-reboot scripts
-      find: paths=/var/lib/auter/post-reboot.d file_type=directory patterns="*"
+      shell: find /var/lib/auter/post-reboot.d -type f | wc -l
+      ignore_errors: True
       register: post-reboot 
 
     - name: copy all scripts to /etc/auter/post-reboot.d/
