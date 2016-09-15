@@ -4,6 +4,7 @@
     csv_file: ./auter-config.csv
   tasks:
     - name: add the rs-epel repo
+      become: true
       failed_when: False
       register: result
       yum:
@@ -11,22 +12,26 @@
         state: latest
       
     - name: add the epel-release repo
+      become: true
       when: "'No Package' in result.msg"
       yum:
         name: epel-release
         state: latest
       
     - name: install auter
+      become: true
       yum:
         name: auter
         state: latest
 
     - name: adjust the auter.conf file
+      become: true
       template:
         src: auter.conf.j2
         dest: /etc/auter/auter.conf
 
     - name: adjust the yum.conf excludes
+      become: true
       lineinfile:
         dest: /etc/yum.conf
         state: present
@@ -38,6 +43,7 @@
                     url="https://raw.githubusercontent.com/rackerlabs/getData/master/getData"
 
     - name: copy get-Data script to server
+      become: true
       copy:
         backup: yes
         dest: /usr/bin/getData
@@ -48,30 +54,34 @@
         src: ./getData
 
     - name: create get-Data pre apply script
+      become: true
       lineinfile: 
         create: yes
         state: present
-        dest: /etc/auter/pre-apply.d/01-auter-pre
+        dest: /etc/auter/pre-apply.d/01-getData-pre
         mode: 0755
         line: /usr/bin/getData --silent -d /root -t auter-getData-$(date +%Y-%m-%d) -p pre
  
     - name: create get-Data post apply script
+      become: true
       lineinfile: 
         create: yes
         state: present
-        dest: /etc/auter/post-apply.d/01-auter-post-apply
+        dest: /etc/auter/post-apply.d/50-getData-post-apply
         mode: 0755
         line: /usr/bin/getData -d /root -t auter-getData-$(date +%Y-%m-%d) -p post-update &> /root/auter-getData-$(date +%Y-%m-%d)/getData/post-update.compare
 
     - name: create get-Data post reboot script
+      become: true
       lineinfile: 
         create: yes
         state: present
-        dest: /etc/auter/post-reboot.d/99-auter-post-reboot
+        dest: /etc/auter/post-reboot.d/99-getData-post-reboot
         mode: 0755
         line: /usr/bin/getData -d /root -t auter-getData-$(date +%Y-%m-%d) -p post-reboot &> /root/auter-getData-$(date +%Y-%m-%d)/getData/post-reboot.compare
 
     - name: enable auter
+      become: true
       command: auter --enable
 
     - local_action: file
