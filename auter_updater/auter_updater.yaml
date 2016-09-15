@@ -2,10 +2,12 @@
 - hosts: all
   tasks:
     - name: get auter status
+      become: true
       shell: auter --status
       register: auter_status
 
     - name: add the rs-epel repo
+      become: true
       failed_when: False
       register: result
       yum:
@@ -13,6 +15,7 @@
         state: latest
       
     - name: install auter
+      become: true
       yum:
         name: auter
         state: latest
@@ -34,6 +37,7 @@
                     url="https://raw.githubusercontent.com/rackerlabs/getData/master/getData"
 
     - name: copy get-Data script to server
+      become: true
       copy:
         backup: yes
         dest: /usr/bin/getData
@@ -44,46 +48,56 @@
         src: ./getData
 
     - name: Check if there are any pre-apply scripts
+      become: true
       shell: find /var/lib/auter/pre-apply.d -type f | wc -l
       ignore_errors: True
       register: pre-apply 
 
     - name: copy all scripts to /etc/auter/pre-apply.d/
+      become: true
       shell: mv /var/lib/auter/pre-apply.d/* /etc/auter/pre-apply.d/
       when: pre-apply.matched|int != 0
       
     - name: Check if there are any post-apply scripts
+      become: true
       shell: find /var/lib/auter/post-apply.d -type f | wc -l
       ignore_errors: True
       register: post-apply 
 
     - name: copy all scripts to /etc/auter/post-apply.d/
+      become: true
       shell: mv /var/lib/auter/post-apply.d/* /etc/auter/post-apply.d/
       when: post-apply.matched|int != 0
      
     - name: Check if there are any pre-reboot scripts
+      become: true
       shell: find /var/lib/auter/pre-reboot.d -type f | wc -l
       ignore_errors: True
       register: pre-reboot 
 
     - name: copy all scripts to /etc/auter/pre-reboot.d/
+      become: true
       shell: mv /var/lib/auter/pre-reboot.d/* /etc/auter/pre-reboot.d/
       when: pre-reboot.matched|int != 0
       
     - name: Check if there are any post-reboot scripts
+      become: true
       shell: find /var/lib/auter/post-reboot.d -type f | wc -l
       ignore_errors: True
       register: post-reboot 
 
     - name: copy all scripts to /etc/auter/post-reboot.d/
+      become: true
       shell: mv /var/lib/auter/post-reboot.d/* /etc/auter/post-reboot.d/
       when: post-reboot.matched|int != 0
       
     - name: Check if any of the scripts contain getData
+      become: true
       shell: grep -ri getData /etc/auter/* | wc -l
       register: getdata_detected
 
     - name: create get-Data pre apply script
+      become: true
       lineinfile: 
         create: yes
         state: present
@@ -93,6 +107,7 @@
       when: getdata_detected.msg|int == 0
  
     - name: create get-Data post apply script
+      become: true
       lineinfile: 
         create: yes
         state: present
@@ -102,6 +117,7 @@
       when: getdata_detected.msg|int == 0
 
     - name: create get-Data post reboot script
+      become: true
       lineinfile: 
         create: yes
         state: present
@@ -111,6 +127,7 @@
       when: getdata_detected.msg|int == 0
 
     - name: enable auter
+      become: true
       command: auter --enable
       when: "'enabled' in auter_status.msg"
 
