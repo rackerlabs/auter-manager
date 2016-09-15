@@ -49,47 +49,47 @@
 
     - name: Check if there are any pre-apply scripts
       become: true
-      shell: find /var/lib/auter/pre-apply.d -type f | wc -l
+      shell: find /var/lib/auter/pre-apply.d -type f 2>/dev/null| wc -l
       ignore_errors: True
-      register: pre-apply 
+      register: pre_apply 
 
     - name: copy all scripts to /etc/auter/pre-apply.d/
       become: true
       shell: mv /var/lib/auter/pre-apply.d/* /etc/auter/pre-apply.d/
-      when: pre-apply.matched|int != 0
+      when: pre_apply.stdout|int != 0
       
     - name: Check if there are any post-apply scripts
       become: true
       shell: find /var/lib/auter/post-apply.d -type f | wc -l
       ignore_errors: True
-      register: post-apply 
+      register: post_apply 
 
     - name: copy all scripts to /etc/auter/post-apply.d/
       become: true
       shell: mv /var/lib/auter/post-apply.d/* /etc/auter/post-apply.d/
-      when: post-apply.matched|int != 0
+      when: post_apply.stdout|int > 0
      
     - name: Check if there are any pre-reboot scripts
       become: true
       shell: find /var/lib/auter/pre-reboot.d -type f | wc -l
       ignore_errors: True
-      register: pre-reboot 
+      register: pre_reboot 
 
     - name: copy all scripts to /etc/auter/pre-reboot.d/
       become: true
       shell: mv /var/lib/auter/pre-reboot.d/* /etc/auter/pre-reboot.d/
-      when: pre-reboot.matched|int != 0
+      when: pre_reboot.stdout|int > 0
       
     - name: Check if there are any post-reboot scripts
       become: true
       shell: find /var/lib/auter/post-reboot.d -type f | wc -l
       ignore_errors: True
-      register: post-reboot 
+      register: post_reboot 
 
     - name: copy all scripts to /etc/auter/post-reboot.d/
       become: true
       shell: mv /var/lib/auter/post-reboot.d/* /etc/auter/post-reboot.d/
-      when: post-reboot.matched|int != 0
+      when: post_reboot.stdout|int > 0
       
     - name: Check if any of the scripts contain getData
       become: true
@@ -104,7 +104,7 @@
         dest: /etc/auter/pre-apply.d/01-auter-pre
         mode: 0755
         line: /usr/bin/getData --silent -d /root -t auter-getData-$(date +%Y-%m-%d) -p pre
-      when: getdata_detected.msg|int == 0
+      when: getdata_detected.stdout|int == 0
  
     - name: create get-Data post apply script
       become: true
@@ -114,7 +114,7 @@
         dest: /etc/auter/post-apply.d/01-auter-post-apply
         mode: 0755
         line: /usr/bin/getData -d /root -t auter-getData-$(date +%Y-%m-%d) -p post-update &> /root/auter-getData-$(date +%Y-%m-%d)/getData/post-update.compare
-      when: getdata_detected.msg|int == 0
+      when: getdata_detected.stdout|int == 0
 
     - name: create get-Data post reboot script
       become: true
@@ -124,12 +124,12 @@
         dest: /etc/auter/post-reboot.d/99-auter-post-reboot
         mode: 0755
         line: /usr/bin/getData -d /root -t auter-getData-$(date +%Y-%m-%d) -p post-reboot &> /root/auter-getData-$(date +%Y-%m-%d)/getData/post-reboot.compare
-      when: getdata_detected.msg|int == 0
+      when: getdata_detected.stdout|int == 0
 
     - name: enable auter
       become: true
       command: auter --enable
-      when: "'enabled' in auter_status.msg"
+      when: "'enabled' in auter_status.stdout"
 
     - local_action: file
                     dest="./getData"
