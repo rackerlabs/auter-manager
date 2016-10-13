@@ -8,12 +8,12 @@ CONFIGSET="default"
 # Set whether server will reboot automatically after --apply. A warning
 # message will show for logged in users 2 mins before the reboot. The 
 # system will only be rebooted if an update was applied.
-AUTOREBOOT="{{ lookup('csvfile', inventory_hostname + ' file=auter-config.csv col=2 delimiter=,') }}"
+AUTOREBOOT="{{ lookup('csvfile', inventory_hostname + ' file=' + csv_file + ' col=2 delimiter=,') }}"
 
 # Options to pass to yum/dnf update. For example, this can be used to 
 # disable excludes or omit packages. If dnf is installed, it will be the
 # preferred package manager.
-PACKAGEMANAGEROPTIONS="{{ lookup('csvfile', inventory_hostname + ' file=auter-config.csv col=3 delimiter=,') }}"
+PACKAGEMANAGEROPTIONS="{{ lookup('csvfile', inventory_hostname + ' file=' + csv_file + ' col=3 delimiter=,') }}"
 
 # If the --downloadonly option is available then updates will be downloaded
 # during --prep
@@ -24,7 +24,7 @@ PREDOWNLOADUPDATES="yes"
 # This is used to stagger load on the repository servers. Default is
 # 3600 seconds so yum/dnf waits a random time between 1 and 3600 seconds.
 # Value is set in seconds
-MAXDELAY="{{ lookup('csvfile', inventory_hostname + ' file=auter-config.csv col=4 delimiter=,') }}"
+MAXDELAY="{{ lookup('csvfile', inventory_hostname + ' file=' + csv_file + ' col=4 delimiter=,') }}"
 
 # Directories containing scripts to execute before/after updates are applied, 
 # and before/after a reboot (if applicable)
