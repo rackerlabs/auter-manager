@@ -19,7 +19,7 @@
                     create=yes
                     state=present
                     dest={{ csv_file }}
-                    line='DeviceNumber,Hostname,Version,Status,LastUpdate'
+                    line='Hostname,Version,Status,LastUpdate'
       when: csv.stat.exists == False
 
     - name: Append output to CSV file
