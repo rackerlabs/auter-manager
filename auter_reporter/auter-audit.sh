@@ -39,7 +39,7 @@ function print_report() {
     echo
     echo "CSV:"
     echo -e "Hostname,Version,Status,LastUpdate"
-    echo "${hostname},v${version},$([[ ${enabled} == "YES" ]] && echo "Enabled" || echo "Disabled"),${lastapply}"
+    echo "${hostname},v${version},$([[ ${enabled} == "YES" ]] && echo "Enabled" || echo "Disabled"),${lastapply},CronScheduleCount:$(echo ${schedule} | grep apply | wc -l)"
     echo
   fi
 
@@ -118,7 +118,7 @@ schedule=$(print_schedule | column -t)
 # Get last apply time
 for MESSAGES in $(ls -1t /var/log/messages*);do
   if [[ $(zgrep -c "auter.*complete" ${MESSAGES}) > 0 ]]; then
-    lastapply=$(zgrep "auter.*complete" ${MESSAGES} | tail -1 | awk '{print $1,$2,$3}')
+    lastapply=$(zgrep "auter.*complete" ${MESSAGES} | tail -1 | awk '{print $2"-"$1"-"$3}')
     break
   fi
 done
