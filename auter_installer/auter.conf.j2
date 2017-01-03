@@ -27,7 +27,7 @@ PREDOWNLOADUPDATES="yes"
 # NOTE: The PREDOWNLOADUPDATES must be set to "yes" for this to take effect.
 # The directory must be owned by user and group 'root' and must not be writable
 # by other.
-ONLYINSTALLFROMPREP="no"
+ONLYINSTALLFROMPREP="{{ lookup('csvfile', inventory_hostname + ' file=' + csv_file + ' col=5 delimiter=,') }}"
 
 # MAXDELAY is upper limit of a random time to wait before querying repositories.
 # This applies to downloading updates (--prep) and installing updates (--apply).
