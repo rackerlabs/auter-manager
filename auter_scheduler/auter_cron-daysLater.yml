@@ -34,6 +34,16 @@
       when:
         minute != minute|int|string or minute|int < 0 or minute|int > 59
 
+# This creates a job that will run '/usr/bin/auter --prep'  on the second tuesday of the month
+    - name: Add cron jobs as defined by the server's schedule group
+      cron:
+        name: "Auter Prep Tuesday:"
+        cron_file: "{{ cron_file }}"
+        minute: 5
+        hour: 0
+        user: "root"
+        job: "[[ $(date +%D) == $(date --date $(date +%Y-%m)-$(LC_ALL=C cal -h | cut -b 7-8 | xargs | awk '{print $4}') +%D) ]] && /usr/bin/auter --prep"
+
 # This creates a job that will run '/usr/bin/auter --apply'  {{ daysLater }} after the second tuesday of the month
     - name: Add cron jobs as defined by the server's schedule group
       cron: 
@@ -42,5 +52,5 @@
         minute: "{{ minute }}"
         hour: "{{ hour }}"
         user: "root"
-        job: "[[ $(date +%D) == $(date --date $(date +%Y-%m)-$(LC_ALL=C cal | cut -b 7-8 | xargs | awk '{print $4}')+{{ days_later }}days +%D) ]] && /usr/bin/auter --apply"
+        job: "[[ $(date +%D) == $(date --date $(date +%Y-%m)-$(LC_ALL=C cal -h | cut -b 7-8 | xargs | awk '{print $4}')+{{ days_later }}days +%D) ]] && /usr/bin/auter --apply"
 ...
