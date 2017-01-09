@@ -18,21 +18,36 @@
     - name: Lookup schedule hour from the CSV file
       set_fact:
         hour: "{{ lookup('csvfile', inventory_hostname + ' file=' + csv_file + ' col=2 delimiter=,').split(':')[0] }}"
+
+    - name: Check if hour is an integer
+      local_action: command python -c "int('{{ hour }}')"
+      register: hour_int_check
+      become: False
+      failed_when: False
+      changed_when: False
+
     - name: Fail if server's schedule hour is invalid
       fail:
         msg: schedule hour for {{ inventory_hostname }} is invalid
       when:
-        hour != hour|int|string or hour|int < 0 or hour|int > 23
+        hour_int_check.rc != 0 or hour|int < 0 or hour|int > 23
 
     - name: Lookup schedule minute from the CSV file
       set_fact:
         minute: "{{ lookup('csvfile', inventory_hostname + ' file=' + csv_file + ' col=2 delimiter=,').split(':')[1] }}"
 
+    - name: Check if minute is an integer
+      local_action: command python -c "int('{{ minute }}')"
+      register: minute_int_check
+      become: False
+      failed_when: False
+      changed_when: False
+
     - name: Fail if server's schedule minute is invalid
       fail:
         msg: schedule minute for {{ inventory_hostname }} is invalid
       when:
-        minute != minute|int|string or minute|int < 0 or minute|int > 59
+        minute_int_check.rc != 0 or minute|int < 0 or minute|int > 59
 
 # This creates a job that will run '/usr/bin/auter --apply'  {{ daysLater }} after the second tuesday of the month
     - name: Add cron jobs as defined by the server's schedule group
