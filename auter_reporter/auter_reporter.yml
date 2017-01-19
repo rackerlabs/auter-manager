@@ -8,7 +8,7 @@
       become: True
       register: auter_audit_output
      
-#    - debug: msg={{ auter_audit_output.stdout_lines[3] }}
+#    - debug: msg={{ auter_audit_output.stdout_lines[4] }}
 
     - local_action: stat path={{ csv_file }}
       become: False
@@ -27,6 +27,6 @@
                     create=yes
                     state=present
                     dest={{ csv_file }}
-                    line={{ auter_audit_output.stdout_lines[3] }}
+                    line={{ auter_audit_output.stdout_lines[4] }}
 ...
 

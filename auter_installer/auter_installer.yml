@@ -90,6 +90,7 @@
 
     - name: remove downloaded configsnap from local directory
       become: False
+      ignore_errors: True
       local_action: file
                     dest="./configsnap"
                     state=absent
