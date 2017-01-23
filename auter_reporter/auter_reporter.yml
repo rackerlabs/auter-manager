@@ -1,16 +1,25 @@
 ---
 - hosts: all
+  gather_facts: False
   vars:
-    csv_file: ./auter-audit-{{ ansible_date_time.date }}.csv
+    csv_file: ./auter-audit.csv
     
   tasks:
+    - local_action: 'shell date +%D'
+      become: False
+      register: currentdate
+
+    - debug: 
+        var: currentdate
+
+
     - script: ./auter-audit.sh -c
       become: True
       register: auter_audit_output
      
 #    - debug: msg={{ auter_audit_output.stdout_lines[4] }}
 
-    - local_action: stat path={{ csv_file }}
+    - local_action: stat path={{ csv_file }}-{{ currentdate }}
       become: False
       register: csv
 
@@ -18,7 +27,7 @@
       local_action: lineinfile
                     create=yes
                     state=present
-                    dest={{ csv_file }}
+                    dest={{ csv_file }}-{{ currentdate }}
                     line='Hostname,Version,Status,LastUpdate'
       when: csv.stat.exists == False
 
@@ -26,7 +35,7 @@
       local_action: lineinfile
                     create=yes
                     state=present
-                    dest={{ csv_file }}
+                    dest={{ csv_file }}-{{ currentdate }}
                     line={{ auter_audit_output.stdout_lines[4] }}
 ...
 
