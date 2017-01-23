@@ -42,7 +42,7 @@
         regexp: '/usr/bin/auter --prep'
         dest: /etc/auter/advancedPrepSchedule
         mode: 0755
-        line: "[[ $(date +%D) == $(date --date $(date +%Y-%m)-$(LC_ALL=C cal | cut -b 7-8 | xargs | awk '{print $4}')+9days +%D) ]] && /usr/bin/auter --prep"
+        line: "[[ $(date +%D) == $(date --date $(date +%Y-%m)-$(LC_ALL=C cal | cut -b 7-8 | xargs | awk '{print $4}') +%D) ]] && /usr/bin/auter --prep"
 
     - name: Create advancedApplySchedule
       lineinfile:
