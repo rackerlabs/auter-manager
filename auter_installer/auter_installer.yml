@@ -30,17 +30,20 @@
 
     - name: adjust the auter.conf file
       template:
+        backup: yes
         src: auter.conf.j2
         dest: /etc/auter/auter.conf
 
     - name: add warning to not edit yum.conf exclude manually
       lineinfile:
+        backup: yes
         line: "# WARNING: the excludes line is edited by auter_installer everytime it is run"
         insertbefore: "^exclude="
         dest: /etc/yum.conf
 
     - name: adjust the yum.conf excludes
       lineinfile:
+        backup: yes
         dest: /etc/yum.conf
         state: present
         regexp: ^exclude
@@ -93,16 +96,10 @@
       register: nimbus_details
       when: nimbus_path is not defined
 
-    - name: set path variable to ise /opt/nimsoft
+    - name: set path variable to is /opt/nimsoft
       set_fact: 
         nimbus_path: "{{ nimbus_details.stat.path }}"
-      when: nimbus_path is not defined 
-
-#    - name: Check if nimbus monitors exist
-#      failed_when: False
-#      command: grep "<auter_monitors>" "{{ nimbus_path }}"
-#      register: monitoring_exists
-#      when: nimbus_path is defined
+      when: nimbus_details.stat.exists == True
 
     - name: Create nimbus monitors in "{{ nimbus_path }}"
       become: true
