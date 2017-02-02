@@ -4,7 +4,7 @@
   vars:
     csv_file: ./schedule_list.csv
     cron_file: auter
-    days_later: "{{ lookup('csvfile', inventory_hostname + ' file=' + csv_file + ' col=1 delimiter=,') }}"
+    days_later: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=1 delimiter=,') }}"
 
   tasks:
     - debug:
@@ -17,7 +17,7 @@
 
     - name: Lookup schedule hour from the CSV file
       set_fact:
-        hour: "{{ lookup('csvfile', inventory_hostname + ' file=' + csv_file + ' col=2 delimiter=,').split(':')[0] }}"
+        hour: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=2 delimiter=,').split(':')[0] }}"
     - name: Fail if server's schedule hour is invalid
       fail:
         msg: schedule hour for {{ inventory_hostname }} is invalid
@@ -26,7 +26,7 @@
 
     - name: Lookup schedule minute from the CSV file
       set_fact:
-        minute: "{{ lookup('csvfile', inventory_hostname + ' file=' + csv_file + ' col=2 delimiter=,').split(':')[1] }}"
+        minute: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=2 delimiter=,').split(':')[1] }}"
 
     - name: Fail if server's schedule minute is invalid
       fail:
