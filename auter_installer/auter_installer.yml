@@ -46,20 +46,10 @@
         regexp: ^exclude
         line: exclude={{ lookup('csvfile', inventory_hostname + ' file=' + csv_file + ' col=1 delimiter=,') }}
 
-    - name: download configsnap to local directory
-      become: False
-      local_action: get_url
-                    dest="./configsnap"
-                    url="https://raw.githubusercontent.com/rackerlabs/configsnap/master/configsnap"
-
-    - name: copy configsnap script to server
-      copy:
-        backup: yes
-        dest: /usr/bin/configsnap
-        group: root
-        owner: root
-        mode: 0755
-        src: ./configsnap
+    - name: Install configsnap
+      yum:
+        name: configsnap
+        state: latest
 
     - name: create configsnap pre apply script
       lineinfile: 
@@ -67,7 +57,7 @@
         state: present
         dest: /etc/auter/pre-apply.d/01-configsnap-pre
         mode: 0755
-        line: /usr/bin/configsnap --silent -d /root -t auter-configsnap-$(date +%Y-%m-%d) -p pre
+        line: /usr/sbin/configsnap --silent -d /root -t auter-configsnap-$(date +%Y-%m-%d) -p pre
  
     - name: create configsnap post apply script
       lineinfile: 
@@ -75,7 +65,7 @@
         state: present
         dest: /etc/auter/post-apply.d/50-configsnap-post-apply
         mode: 0755
-        line: /usr/bin/configsnap -d /root -t auter-configsnap-$(date +%Y-%m-%d) -p post-update &> /root/auter-configsnap-$(date +%Y-%m-%d)/configsnap/post-update.compare
+        line: /usr/sbin/configsnap -d /root -t auter-configsnap-$(date +%Y-%m-%d) -p post-update &> /root/auter-configsnap-$(date +%Y-%m-%d)/configsnap/post-update.compare
 
     - name: create configsnap post reboot script
       lineinfile: 
@@ -83,15 +73,110 @@
         state: present
         dest: /etc/auter/post-reboot.d/99-configsnap-post-reboot
         mode: 0755
-        line: /usr/bin/configsnap -d /root -t auter-configsnap-$(date +%Y-%m-%d) -p post-reboot &> /root/auter-configsnap-$(date +%Y-%m-%d)/configsnap/post-reboot.compare
+        line: /usr/sbin/configsnap -d /root -t auter-configsnap-$(date +%Y-%m-%d) -p post-reboot &> /root/auter-configsnap-$(date +%Y-%m-%d)/configsnap/post-reboot.compare
 
     - name: enable auter
       command: auter --enable
 
-    - name: remove downloaded configsnap from local directory
-      become: False
-      ignore_errors: True
-      local_action: file
-                    dest="./configsnap"
-                    state=absent
+# This section can be used if you have nimbus installed and configured
+    - name: Check if nimbus path is /opt/nimbus
+      stat: path=/opt/nimbus/probes/system/logmon/logmon.cfg
+      register: nimbus_details
+
+    - name: set path variable to use /opt/nimbus
+      set_fact: 
+        nimbus_path: "{{ nimbus_details.stat.path }}"
+      when: nimbus_details.stat.exists == True
+
+    - name: check if nimbus path is /opt/nimsoft
+      stat: path=/opt/nimsoft/probes/system/logmon/logmon.cfg
+      register: nimbus_details
+      when: nimbus_path is not defined
+
+    - name: set path variable to ise /opt/nimsoft
+      set_fact: 
+        nimbus_path: "{{ nimbus_details.stat.path }}"
+      when: nimbus_path is not defined 
+
+#    - name: Check if nimbus monitors exist
+#      failed_when: False
+#      command: grep "<auter_monitors>" "{{ nimbus_path }}"
+#      register: monitoring_exists
+#      when: nimbus_path is defined
+
+    - name: Create nimbus monitors in "{{ nimbus_path }}"
+      become: true
+      blockinfile:
+        backup: yes
+        insertbefore: "</profiles>"
+        marker: "# {mark} ANSIBLE MANAGED AUTER BLOCK"
+        dest: /opt/nimsoft/probes/system/logmon/logmon.cfg
+        block: |2
+             <auter_monitors>
+                active = yes
+                interval = 7 min
+                scanfile = /var/log/messages
+                scanmode = updates
+                alarm = yes
+                qos = yes
+                message = no
+                subject =
+                <watchers>
+                   <errors>
+                      active = yes
+                      match = /.*auter.*ERROR:.*/
+                      level = critical
+                      subsystemid =
+                      message =
+                      restrict =
+                      expect = no
+                      abort = no
+                      sendclear = no
+                      count = no
+                      separator =
+                      suppid = $WATCHER
+                      source =
+                      target =
+                      qos =
+                      runcommandonmatch = no
+                      commandexecutable =
+                      commandarguments =
+                   </errors>
+                   <warnings>
+                      active = yes
+                      match = /.*auter.*WARNING:.*/
+                      level = critical
+                      subsystemid =
+                      message =
+                      restrict =
+                      expect = no
+                      abort = no
+                      sendclear = no
+                      count = no
+                      separator =
+                      suppid = $WATCHER
+                      source =
+                      target =
+                      qos =
+                      runcommandonmatch = no
+                      commandexecutable =
+                      commandarguments =
+                   </warnings>
+                </watchers>
+             </auter_monitors>
+      when: nimbus_path is defined 
+
+    - name: get number of nimbus processes
+      shell: "ps aux | grep -c nimbus"
+      register: nimbusProcessCountPre
+      when: nimbus_path is defined
+
+    - name: restart nimbus
+      failed_when: False
+      service:
+        enabled: yes
+        name: nimbus
+        state: restart
+        pattern: nimbus(controller)
+      when: nimbus_path is defined
 ...
