@@ -8,7 +8,7 @@
     - name: Pre-check if server has configuration set in CSV file
       become: False
       changed_when: False
-      local_action: command grep ^{{ inventory_hostname }}, {{ csv_file }}
+      local_action: command grep ^{{ inventory_hostname.split(':')[0] }}, {{ csv_file }}
 
     - name: add the rs-epel repo
       failed_when: False
@@ -47,7 +47,7 @@
         dest: /etc/yum.conf
         state: present
         regexp: ^exclude
-        line: exclude={{ lookup('csvfile', inventory_hostname + ' file=' + csv_file + ' col=1 delimiter=,') }}
+        line: exclude={{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=1 delimiter=,') }}
 
     - name: Install configsnap
       yum:
@@ -110,7 +110,6 @@
       when: nimbus_details.stat.exists == True
 
     - name: Create nimbus monitors in "{{ nimbus_path }}"
-      become: true
       blockinfile:
         backup: yes
         insertbefore: "</profiles>"
