@@ -21,7 +21,7 @@
         hour: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=2 delimiter=,').split(':')[0] }}"
     - name: Fail if server's schedule hour is invalid
       fail:
-        msg: schedule hour for {{ inventory_hostname.split(':')[0] }} is invalid
+        msg: "schedule hour for {{ inventory_hostname.split(':')[0] }} is invalid"
       when:
         hour != hour|int|string or hour|int < 0 or hour|int > 23
 
@@ -31,7 +31,7 @@
 
     - name: Fail if server's schedule minute is invalid
       fail:
-        msg: schedule minute for {{ inventory_hostname.split(':')[0] }} is invalid
+        msg: "schedule minute for {{ inventory_hostname.split(':')[0] }} is invalid"
       when:
         minute != minute|int|string or minute|int < 0 or minute|int > 59
 
@@ -44,14 +44,34 @@
         mode: 0755
         line: "[[ $(date +%D) == $(date --date $(date +%Y-%m)-$(LC_ALL=C cal | cut -b 7-8 | xargs | awk '{print $4}') +%D) ]] && /usr/bin/auter --prep"
 
+    - name: Remove old advancedApplySchedule
+      file:
+        dest: /etc/auter/advancedApplySchedule
+        state: absent
+
     - name: Create advancedApplySchedule
-      lineinfile:
+      blockinfile:
         create: yes
         state: present
-        regexp: '/usr/bin/auter --apply'
+        marker: '# {mark} ANSIBLE MANAGED BLOCK'
         dest: /etc/auter/advancedApplySchedule
         mode: 0755
-        line: "[[ $(date +%D) == $(date --date $(date +%Y-%m)-$(LC_ALL=C cal | cut -b 7-8 | xargs | awk '{print $4}')+{{ days_later }}days +%D) ]] && /usr/bin/auter --apply"
+        block: |
+          # Get the current months second tuesday day
+          PatchTuesdayDay="$(LC_ALL=C cal | cut -b 7-8 | xargs | awk '{print $4}')"
+
+          # If the current day is less than this months second tuesday then use
+          # previous months second tuesday
+          if [[ $(date +%d) < ${PatchTuesdayDay} ]]; then
+            # Note: the 15th is hard coded for a specific reason. See 28.6 in
+            # info coreutils 'Relative items in date strings'
+            PatchTuesday="$(date --date="$(date +%Y-%m-15) -1 month" +'%Y-%m')-$(LC_ALL=C cal -3 | cut -b 7-8 | xargs | awk '{print $4}')"
+          else
+            PatchTuesday="$(date +%Y-%m)-${PatchTuesdayDay}"
+          fi
+
+          # If todays date is equal to {{ days_later }} after patching tuesday then apply updates
+          [[ $(date +%D) == $(date --date ${PatchTuesday}+{{ days_later }}days +%D) ]] && /usr/bin/auter --apply
 
 # This creates a job that will run '/usr/bin/auter --prep'  on the second tuesday of the month
     - name: Add cron jobs as defined by the server's schedule group
