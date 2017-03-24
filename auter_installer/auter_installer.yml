@@ -4,11 +4,19 @@
   gather_facts: False
   vars: 
     csv_file: ./auter_config.csv
+    username: "none"
+    appstatssource: "auter-manager"
+    appstatsappid: "auter-manager"
+    appstatsfunctionid: "installer"
   tasks:
     - name: Pre-check if server has configuration set in CSV file
       become: False
       changed_when: False
       local_action: command grep ^{{ inventory_hostname.split(':')[0] }}, {{ csv_file }}
+
+    - name: Check if epel repo is present
+      shell: time yum repolist | grep epel | wc -l
+      register: epelPresent
 
     - name: add the rs-epel repo
       failed_when: False
@@ -16,9 +24,11 @@
       yum:
         name: rs-epel-release
         state: latest
+      when: epelPresent.stdout|int == 0
       
     - name: add the epel repo
-      when: "'No Package' in result.msg"
+      when: ( '"No Package" in result.msg' ) and epelPresent.stdout == 0
+
       yum:
         name: epel-release
         state: latest
@@ -183,4 +193,29 @@
         state: restart
         pattern: nimbus(controller)
       when: nimbus_path is defined
+
+    # We are assuming the ~/.config/hammertime/config.yaml exists because you
+    # will be using hammertime to execute these commands
+    - name: Get SSO from ~/.config/hammertime/config.yaml
+      become: false
+      local_action:
+        module: shell awk '/^\s+username:.*[a-z]/ {print $2;exit;}' $HOME/.config/hammertime/config.yaml
+      register: username
+
+    - name: Appstats report
+      local_action:
+        module: uri
+        url: 'https://appstats.rackspace.com/appstats/event/'
+        method: 'POST'
+        HEADER_Content-Type: application/json
+        body: '{
+          "username": "{{ username.stdout }}",
+          "status": "SUCCESS",
+          "source": "{{ appstatssource }}",
+          "appid": "{{ appstatsappid }}",
+          "OS": "Linux",
+          "functionid": "{{ appstatsfunctionid }}"
+        }'
+        body_format: json
+      become: False
 ...
