@@ -3,11 +3,15 @@
   become: True
   gather_facts: False
   vars: 
-    csv_file: ./auter_config.csv
     username: "none"
     appstatssource: "auter-manager"
     appstatsappid: "auter-manager"
     appstatsfunctionid: "installer"
+  vars_prompt:
+    name: "csv_file"
+    prompt: "Enter config file (defaults to ./auter_config.csv)"
+    default: "./auter_config.csv"
+    private: no
   tasks:
     - name: Pre-check if server has configuration set in CSV file
       become: False
@@ -178,12 +182,13 @@
                    </warnings>
                 </watchers>
              </auter_monitors>
+      register: nimbus_updated
       when: nimbus_path is defined
 
     - name: get number of nimbus processes
       shell: "ps aux | grep -c nimbus"
       register: nimbusProcessCountPre
-      when: nimbus_path is defined
+      when: nimbus_path is defined and nimbus_updated.changed
 
     - name: restart nimbus
       failed_when: False
@@ -192,7 +197,7 @@
         name: nimbus
         state: restart
         pattern: nimbus(controller)
-      when: nimbus_path is defined
+      when: nimbus_path is defined and nimbus_updated.changed
 
     # We are assuming the ~/.config/hammertime/config.yaml exists because you
     # will be using hammertime to execute these commands

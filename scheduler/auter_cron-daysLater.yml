@@ -3,13 +3,19 @@
   become: True
   gather_facts: False
   vars:
-    csv_file: ./schedule_list.csv
+#    csv_file: "./schedule_list.csv"
     cron_file: auter
     days_later: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=1 delimiter=,') }}"
     username: "none"
     appstatssource: "my-playbook"
     appstatsappid: "my-playbook"
     appstatsfunctionid: "my-reporter"
+  vars_prompt:
+    name: csv_file
+    default: "./schedule_list.csv"
+    prompt: "Enter config file"
+    private: no 
+
 
   tasks:
     - debug:
