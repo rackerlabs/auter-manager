@@ -14,15 +14,24 @@
     private: no
   tasks:
     - name: Pre-check if server has configuration set in CSV file
+      tags:
+        - prechecks
       become: False
       changed_when: False
       local_action: command grep ^{{ inventory_hostname.split(':')[0] }}, {{ csv_file }}
 
     - name: Check if epel repo is present
+      tags:
+        - prechecks
+        - auter
+        - configsnap
       shell: time yum repolist | grep epel | wc -l
       register: epelPresent
 
     - name: add the rs-epel repo
+      tags:
+        - auter
+        - configsnap
       failed_when: False
       register: result
       yum:
@@ -31,24 +40,32 @@
       when: epelPresent.stdout|int == 0
       
     - name: add the epel repo
+      tags:
+        - auter
+        - configsnap
       when: ( '"No Package" in result.msg' ) and epelPresent.stdout == 0
-
       yum:
         name: epel-release
         state: latest
       
     - name: install auter
+      tags:
+        - auter
       yum:
         name: auter
         state: latest
 
     - name: adjust the auter.conf file
+      tags:
+        - configure
       template:
         backup: yes
         src: auter.conf.j2
         dest: /etc/auter/auter.conf
 
     - name: add warning to not edit yum.conf exclude manually
+      tags:
+        - configure
       lineinfile:
         backup: yes
         line: "# WARNING: the excludes line is edited by auter_installer everytime it is run"
@@ -56,6 +73,8 @@
         dest: /etc/yum.conf
 
     - name: adjust the yum.conf excludes
+      tags:
+        - configure
       lineinfile:
         backup: yes
         dest: /etc/yum.conf
@@ -64,11 +83,17 @@
         line: exclude={{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=1 delimiter=,') }}
 
     - name: Install configsnap
+      tags:
+        - configure
+        - configsnap
       yum:
         name: configsnap
         state: latest
 
     - name: create configsnap pre apply script
+      tags:
+        - configure
+        - configsnap
       lineinfile: 
         create: yes
         state: present
@@ -78,6 +103,9 @@
         line: /usr/sbin/configsnap --silent -d /root -t auter-configsnap-$(date +%Y-%m-%d) -p pre
  
     - name: create configsnap post apply script
+      tags:
+        - configure
+        - configsnap
       lineinfile: 
         create: yes
         state: present
@@ -87,6 +115,9 @@
         line: /usr/sbin/configsnap -d /root -t auter-configsnap-$(date +%Y-%m-%d) -p post-update &> /root/auter-configsnap-$(date +%Y-%m-%d)/configsnap/post-update.compare
 
     - name: create configsnap post reboot script
+      tags:
+        - configure
+        - configsnap
       lineinfile: 
         create: yes
         state: present
@@ -96,34 +127,53 @@
         line: /usr/sbin/configsnap -d /root -t auter-configsnap-$(date +%Y-%m-%d) -p post-reboot &> /root/auter-configsnap-$(date +%Y-%m-%d)/configsnap/post-reboot.compare
 
     - name: check auter status
+      tags:
+        - auter
       shell: "auter --status"
       register: auterStatus
 
     - name: enable auter
+      tags:
+        - auter
       command: auter --enable
       when: "'auter is currently enabled' not in auterStatus.stdout"
 
 # This section can be used if you have nimbus installed and configured
     - name: Check if nimbus path is /opt/nimbus
+      tags:
+        - configure
+        - numbus
       stat: path=/opt/nimbus/probes/system/logmon/logmon.cfg
       register: nimbus_details
 
     - name: set path variable to use /opt/nimbus
+      tags:
+        - configure
+        - numbus
       set_fact:
         nimbus_path: "{{ nimbus_details.stat.path }}"
       when: nimbus_details.stat.exists == True
 
     - name: check if nimbus path is /opt/nimsoft
+      tags:
+        - configure
+        - numbus
       stat: path=/opt/nimsoft/probes/system/logmon/logmon.cfg
       register: nimbus_details
       when: nimbus_path is not defined
 
     - name: set path variable to is /opt/nimsoft
+      tags:
+        - configure
+        - numbus
       set_fact:
         nimbus_path: "{{ nimbus_details.stat.path }}"
       when: nimbus_details.stat.exists == True
 
     - name: Create nimbus monitors in "{{ nimbus_path }}"
+      tags:
+        - configure
+        - numbus
       blockinfile:
         backup: yes
         insertbefore: "</profiles>"
@@ -186,11 +236,17 @@
       when: nimbus_path is defined
 
     - name: get number of nimbus processes
+      tags:
+        - configure
+        - numbus
       shell: "ps aux | grep -c nimbus"
       register: nimbusProcessCountPre
       when: nimbus_path is defined and nimbus_updated.changed
 
     - name: restart nimbus
+      tags:
+        - configure
+        - numbus
       failed_when: False
       service:
         enabled: yes
@@ -202,12 +258,16 @@
     # We are assuming the ~/.config/hammertime/config.yaml exists because you
     # will be using hammertime to execute these commands
     - name: Get SSO from ~/.config/hammertime/config.yaml
+      tags:
+        - appstats
       become: false
       local_action:
         module: shell awk '/^\s+username:.*[a-z]/ {print $2;exit;}' $HOME/.config/hammertime/config.yaml
       register: username
 
     - name: Appstats report
+      tags:
+        - appstats
       local_action:
         module: uri
         url: 'https://appstats.rackspace.com/appstats/event/'
