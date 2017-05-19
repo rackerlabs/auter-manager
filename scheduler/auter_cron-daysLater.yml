@@ -55,11 +55,15 @@
         line: "[[ $(date +%D) == $(date --date $(date +%Y-%m)-$(LC_ALL=C cal | cut -b 7-8 | xargs | awk '{print $4}') +%D) ]] && /usr/bin/auter --prep"
 
     - name: Remove old advancedApplySchedule
+      tags:
+        - ApplySchedule
       file:
         dest: /etc/auter/advancedApplySchedule
         state: absent
 
     - name: Create advancedApplySchedule
+      tags:
+        - ApplySchedule
       blockinfile:
         create: yes
         state: present
@@ -72,7 +76,7 @@
 
           # If the current day is less than this months second tuesday then use
           # previous months second tuesday
-          if [[ $(date +%d) < ${PatchTuesdayDay} ]]; then
+          if [[ $(date +%d) -lt ${PatchTuesdayDay} ]]; then
             # Note: the 15th is hard coded for a specific reason. See 28.6 in
             # info coreutils 'Relative items in date strings'
             PatchTuesday="$(date --date="$(date +%Y-%m-15) -1 month" +'%Y-%m')-$(LC_ALL=C cal -3 | cut -b 7-8 | xargs | awk '{print $4}')"
