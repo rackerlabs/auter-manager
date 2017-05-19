@@ -20,8 +20,12 @@
   tasks:
     - debug:
         msg: "{{ days_later }}"
+      tags:
+        - debug
 
     - name: Pre-check if server has configuration set in CSV file
+      tags:
+        - always
       become: False
       changed_when: False
       local_action: command grep ^{{ inventory_hostname.split(':')[0] }}, {{ csv_file }}
@@ -54,17 +58,18 @@
         mode: 0755
         line: "[[ $(date +%D) == $(date --date $(date +%Y-%m)-$(LC_ALL=C cal | cut -b 7-8 | xargs | awk '{print $4}') +%D) ]] && /usr/bin/auter --prep"
 
-    - name: Remove old advancedApplySchedule
-      tags:
-        - ApplySchedule
-      file:
-        dest: /etc/auter/advancedApplySchedule
-        state: absent
+#    - name: Remove old advancedApplySchedule
+#      tags:
+#        - ApplySchedule
+#      file:
+#        dest: /etc/auter/advancedApplySchedule
+#        state: absent
 
     - name: Create advancedApplySchedule
       tags:
         - ApplySchedule
       blockinfile:
+        backup: yes
         create: yes
         state: present
         marker: '# {mark} ANSIBLE MANAGED BLOCK'
