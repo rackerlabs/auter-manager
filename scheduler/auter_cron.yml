@@ -3,11 +3,6 @@
   become: True
   vars:
     csv_file: ./schedule_list.csv
-    username: "none"
-    appstatssource: "my-playbook"
-    appstatsappid: "my-playbook"
-    appstatsfunctionid: "my-reporter"
-
   tasks:
     - name: Pre-check if server has configuration set in CSV file
       become: False
@@ -65,23 +60,5 @@
       local_action:
         module: shell awk '/^\s+username:.*[a-z]/ {print $2;exit;}' $HOME/.config/hammertime/config.yaml
       register: username
-      failed_when: False
-
-    - name: Appstats report
-      local_action:
-        module: uri
-        url: 'https://appstats.rackspace.com/appstats/event/'
-        method: 'POST'
-        HEADER_Content-Type: application/json
-        body: '{
-          "username": "{{ username.stdout }}",
-          "status": "SUCCESS",
-          "source": "{{ appstatssource }}",
-          "appid": "{{ appstatsappid }}",
-          "OS": "Linux",
-          "functionid": "{{ appstatsfunctionid }}"
-        }'
-        body_format: json
-      become: False
       failed_when: False
 ...

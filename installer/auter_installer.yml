@@ -2,11 +2,6 @@
 - hosts: all
   become: True
   gather_facts: False
-  vars: 
-    username: "none"
-    appstatssource: "auter-manager"
-    appstatsappid: "auter-manager"
-    appstatsfunctionid: "installer"
   vars_prompt:
     name: "csv_file"
     prompt: "Enter config file (defaults to ./auter_config.csv)"
@@ -254,33 +249,4 @@
         state: restart
         pattern: nimbus(controller)
       when: nimbus_path is defined and nimbus_updated.changed
-
-    # We are assuming the ~/.config/hammertime/config.yaml exists because you
-    # will be using hammertime to execute these commands
-    - name: Get SSO from ~/.config/hammertime/config.yaml
-      tags:
-        - appstats
-      become: false
-      local_action:
-        module: shell awk '/^\s+username:.*[a-z]/ {print $2;exit;}' $HOME/.config/hammertime/config.yaml
-      register: username
-
-    - name: Appstats report
-      tags:
-        - appstats
-      local_action:
-        module: uri
-        url: 'https://appstats.rackspace.com/appstats/event/'
-        method: 'POST'
-        HEADER_Content-Type: application/json
-        body: '{
-          "username": "{{ username.stdout }}",
-          "status": "SUCCESS",
-          "source": "{{ appstatssource }}",
-          "appid": "{{ appstatsappid }}",
-          "OS": "Linux",
-          "functionid": "{{ appstatsfunctionid }}"
-        }'
-        body_format: json
-      become: False
 ...
