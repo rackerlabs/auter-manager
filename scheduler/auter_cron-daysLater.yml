@@ -6,10 +6,6 @@
 #    csv_file: "./schedule_list.csv"
     cron_file: auter
     days_later: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=1 delimiter=,') }}"
-    username: "none"
-    appstatssource: "my-playbook"
-    appstatsappid: "my-playbook"
-    appstatsfunctionid: "my-reporter"
   vars_prompt:
     name: csv_file
     default: "./schedule_list.csv"
@@ -117,23 +113,5 @@
       local_action:
         module: shell awk '/^\s+username:.*[a-z]/ {print $2;exit;}' $HOME/.config/hammertime/config.yaml
       register: username
-      failed_when: False
-
-    - name: Appstats report
-      local_action:
-        module: uri
-        url: 'https://appstats.rackspace.com/appstats/event/'
-        method: 'POST'
-        HEADER_Content-Type: application/json
-        body: '{
-          "username": "{{ username.stdout }}",
-          "status": "SUCCESS",
-          "source": "{{ appstatssource }}",
-          "appid": "{{ appstatsappid }}",
-          "OS": "Linux",
-          "functionid": "{{ appstatsfunctionid }}"
-        }'
-        body_format: json
-      become: False
       failed_when: False
 ...

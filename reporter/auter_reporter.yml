@@ -3,11 +3,6 @@
   gather_facts: False
   vars:
     csv_file: ./auter-audit.csv
-    username: "none"
-    appstatssource: "auter-manager"
-    appstatsappid: "auter-manager"
-    appstatsfunctionid: "reporter"
-
     
   tasks:
     - local_action: 'shell date +%D'
@@ -48,24 +43,6 @@
       local_action:
         module: shell awk '/^\s+username:.*[a-z]/ {print $2;exit;}' $HOME/.config/hammertime/config.yaml
       register: username
-      failed_when: False
-
-    - name: Appstats report
-      local_action:
-        module: uri
-        url: 'https://appstats.rackspace.com/appstats/event/'
-        method: 'POST'
-        HEADER_Content-Type: application/json
-        body: '{
-          "username": "{{ username.stdout }}",
-          "status": "SUCCESS",
-          "source": "{{ appstatssource }}",
-          "appid": "{{ appstatsappid }}",
-          "OS": "Linux",
-          "functionid": "{{ appstatsfunctionid }}"
-        }'
-        body_format: json
-      become: False
       failed_when: False
 ...
 
