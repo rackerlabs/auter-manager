@@ -37,12 +37,5 @@
                     state=present
                     dest={{ csv_file }}-{{ currentdate }}
                     line={{ auter_audit_output.stdout_lines[4] }}
-
-    - name: Get SSO from ~/.config/hammertime/config.yaml
-      become: false
-      local_action:
-        module: shell awk '/^\s+username:.*[a-z]/ {print $2;exit;}' $HOME/.config/hammertime/config.yaml
-      register: username
-      failed_when: False
 ...
 
