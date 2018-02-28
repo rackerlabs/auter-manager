@@ -120,6 +120,7 @@
         mode: 0755
         regexp: configsnap.*pre
         line: 'if find /root/auter-configsnap-$(date +%Y-%m-%d)/configsnap/ -name "*.pre" &>/dev/null; then /usr/sbin/configsnap --silent -d /root -t auter-configsnap-$(date +%Y-%m-%d) -p pre; else logger -p info -t auter "WARNING: Configsnap pre-apply files missing, running $0 for post-reboot diff."; fi'
+      no_log: true
 
     - name: create configsnap post reboot script
       tags:
