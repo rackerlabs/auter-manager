@@ -113,13 +113,13 @@
       tags:
         - configure
         - configsnap
-      lineinfile: 
+      lineinfile:
         create: yes
         state: present
         dest: /etc/auter/pre-reboot.d/99-configsnap-pre-reboot
         mode: 0755
-        regexp: configsnap.*pre-reboot
-        line: 'if find /root/auter-configsnap-$(date +%Y-%m-%d)/configsnap/ -name "*.pre" &>/dev/null; then /usr/sbin/configsnap --silent -d /root -t auter-configsnap-$(date +%Y-%m-%d) -p pre; else logger -p info -t auter "WARNING: Configsnap pre-apply files missing, running $0 for post-reboot diff"; fi'
+        regexp: configsnap.*pre
+        line: 'if find /root/auter-configsnap-$(date +%Y-%m-%d)/configsnap/ -name "*.pre" &>/dev/null; then /usr/sbin/configsnap --silent -d /root -t auter-configsnap-$(date +%Y-%m-%d) -p pre; else logger -p info -t auter "WARNING: Configsnap pre-apply files missing, running $0 for post-reboot diff."; fi'
 
     - name: create configsnap post reboot script
       tags:
