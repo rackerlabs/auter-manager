@@ -1,0 +1,37 @@
+---
+
+# This is the meta auter-manager playbook.
+# This playbook gathers plays auter_install and auter_schedule to install / configure auter,
+# configsnap and nimbus and set up auter prep and apply schedules
+#
+# All configuration should be present in a csv file matching 
+# auter_config_template.csv format/definition.
+
+- hosts: all
+  become: True
+  gather_facts: False
+  vars_prompt:
+    - name: "ini_csv_file"
+      prompt: "Enter config file (defaults to ./auter_config.csv)"
+      default: "./auter_config.csv"
+      private: no
+    - name: "ini_reboot"
+      prompt: "Should we systematically reboot on 'auter --apply'? (This will trigger reboot and associated scritps even if there are no available updates) <yes|no>"
+      default: False
+      private: no
+
+  # Need to do this to get variables usable in both playbooks
+  pre_tasks:
+    - name: set variable csv_file for all plays
+      tags: install,schedule
+      set_fact:
+        csv_file: '{{ ini_csv_file }}'
+    - name: set variable reboot for all plays
+      tags: schedule
+      set_fact:
+        reboot: '{{ ini_reboot }}'
+
+  roles:
+    - { role: auter_installer, tags: ['install'] }
+    - { role: auter_scheduler, tags: ['schedule'] }
+

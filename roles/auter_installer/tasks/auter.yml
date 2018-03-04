@@ -1,0 +1,43 @@
+---
+
+- name: install auter
+  tags: auter
+  yum:
+    name: auter
+    state: latest
+
+- name: adjust the auter.conf file
+  tags: configure
+  template:
+    backup: yes
+    src: auter.conf.j2
+    dest: /etc/auter/auter.conf
+
+- name: add warning to not edit yum.conf exclude manually
+  tags: configure
+  lineinfile:
+    backup: yes
+    line: "# WARNING: the excludes line is edited by auter_installer everytime it is run"
+    insertbefore: "^exclude="
+    dest: /etc/yum.conf
+
+- name: adjust the yum.conf excludes
+  tags: configure
+  lineinfile:
+    backup: yes
+    dest: /etc/yum.conf
+    state: present
+    regexp: ^exclude
+    line: exclude={{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=1 delimiter=,') }}
+
+- name: check auter status
+  tags: auter
+  shell: "auter --status"
+  register: auterStatus
+  changed_when: auterStatus.rc != 0
+
+- name: enable auter
+  tags: auter
+  command: auter --enable
+  when: "'auter is currently enabled' not in auterStatus.stdout"
+
