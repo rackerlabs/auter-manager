@@ -23,6 +23,7 @@ Things to consider when filling the csv file:
     * `10`
 
 ## Playbooks
+- `auter_manager.yml` loads up `auter_installer` and `auter_scheduler` roles to install, configure and schedule Auter based on devices configured in the CSV file. It is intended to be the 'default' playbook to use to set up everything in one go.
 - `auter_install.yml` will install and configure Auter based on devices configured in the CSV file.
 - `auter_scheduler.yml` on its own handles the crontab configuration for the two main fonctions of Auter: prep and apply. The play will write the cron scheduling into file **/etc/cron.d/auter**
 - `auter_reporter.yml` is an easy way to gather information on Auter status and latest use for any number of devices. The result file will be place into sub-directory **output**.

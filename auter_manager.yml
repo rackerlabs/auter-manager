@@ -1,8 +1,9 @@
 ---
 
 # This is the meta auter-manager playbook.
-# This playbook gathers plays auter_install and auter_schedule to install / configure auter,
-# configsnap and nimbus and set up auter prep and apply schedules
+# This playbook gathers plays auter_install and auter_schedule to:
+#   - install / configure auter, configsnap and nimbus
+#   - set up auter prep and apply schedules
 #
 # All configuration should be present in a csv file matching 
 # auter_config_template.csv format/definition.
