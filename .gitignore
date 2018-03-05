@@ -1,0 +1,4 @@
+*.retry
+*.tmp
+auter_config.csv
+old/

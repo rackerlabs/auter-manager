@@ -1,0 +1,15 @@
+
+occur_cron:
+  first: 1-7
+  second: 8-14
+  third: 15-21
+  fourth: 22-28
+day_cron:
+  monday: 1
+  tuesday: 2
+  wednesday: 3
+  thursday: 4
+  friday: 5
+  saturday: 6
+  sunday: 7
+

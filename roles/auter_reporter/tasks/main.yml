@@ -1,0 +1,36 @@
+
+- name: ensure output directory exists
+  file:
+    path: ./output
+    state: directory
+    mode: 0755
+  delegate_to: localhost
+
+- name: set result filename
+  set_fact:
+    result_file: "./output/report_auter_{{ time }}.csv"
+  delegate_to: localhost
+  run_once: true
+
+- debug: var=result_file
+
+- script: auter-audit.sh -c
+  become: True
+  register: auter_audit_output
+
+- name: initiate result file
+  copy:
+    src: header
+    dest: "{{ result_file }}"
+    mode: 0644
+    backup: yes
+  delegate_to: localhost
+
+- name: append output to result file
+  lineinfile:
+    dest: "{{ result_file }}"
+    line: "{{ auter_audit_output.stdout_lines[4] }}"
+    insertafter: EOF 
+    state: present
+  delegate_to: localhost
+

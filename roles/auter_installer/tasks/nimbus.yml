@@ -1,0 +1,104 @@
+---
+
+# This section can be used if you have nimbus installed and configured
+- name: Check if nimbus path is /opt/nimbus
+  tags: configure,nimbus
+  stat: path=/opt/nimbus/probes/system/logmon/logmon.cfg
+  register: nimbus_details
+
+- name: set path variable to use /opt/nimbus
+  tags: configure,nimbus
+  set_fact:
+    nimbus_path: "{{ nimbus_details.stat.path }}"
+  when: nimbus_details.stat.exists == True
+
+- name: check if nimbus path is /opt/nimsoft
+  tags: configure,nimbus
+  stat: path=/opt/nimsoft/probes/system/logmon/logmon.cfg
+  register: nimbus_details
+  when: nimbus_path is not defined
+
+- name: set path variable to is /opt/nimsoft
+  tags: configure,nimbus
+  set_fact:
+    nimbus_path: "{{ nimbus_details.stat.path }}"
+  when: nimbus_details.stat.exists == True
+
+- name: Create nimbus monitors in "{{ nimbus_path }}"
+  tags: configure,nimbus
+  blockinfile:
+    backup: yes
+    insertbefore: "</profiles>"
+    marker: "# {mark} ANSIBLE MANAGED AUTER BLOCK"
+    dest: /opt/nimsoft/probes/system/logmon/logmon.cfg
+    block: |2
+         <auter_monitors>
+            active = yes
+            interval = 7 min
+            scanfile = /var/log/messages
+            scanmode = updates
+            alarm = yes
+            qos = yes
+            message = no
+            subject =
+            <watchers>
+               <errors>
+                  active = yes
+                  match = /.*auter.*ERROR:.*/
+                  level = critical
+                  subsystemid =
+                  message =
+                  restrict =
+                  expect = no
+                  abort = no
+                  sendclear = no
+                  count = no
+                  separator =
+                  suppid = $WATCHER
+                  source =
+                  target =
+                  qos =
+                  runcommandonmatch = no
+                  commandexecutable =
+                  commandarguments =
+               </errors>
+               <warnings>
+                  active = yes
+                  match = /.*auter.*WARNING:.*/
+                  level = critical
+                  subsystemid =
+                  message =
+                  restrict =
+                  expect = no
+                  abort = no
+                  sendclear = no
+                  count = no
+                  separator =
+                  suppid = $WATCHER
+                  source =
+                  target =
+                  qos =
+                  runcommandonmatch = no
+                  commandexecutable =
+                  commandarguments =
+               </warnings>
+            </watchers>
+         </auter_monitors>
+  register: nimbus_updated
+  when: nimbus_path is defined
+
+- name: get number of nimbus processes
+  tags: configure,nimbus
+  shell: "ps aux | grep -c nimbus"
+  register: nimbusProcessCountPre
+  when: nimbus_path is defined and nimbus_updated.changed
+
+- name: restart nimbus
+  tags: configure,nimbus
+  failed_when: False
+  service:
+    enabled: yes
+    name: nimbus
+    state: restarted
+    pattern: nimbus(controller)
+  when: nimbus_path is defined and nimbus_updated.changed
