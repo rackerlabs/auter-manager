@@ -1,0 +1,63 @@
+---
+
+- name: Install configsnap
+  tags: configure,configsnap
+  yum:
+    name: configsnap
+    state: latest
+
+- name: create configsnap pre apply script
+  tags: configure,configsnap
+  lineinfile: 
+    create: yes
+    state: present
+    dest: /etc/auter/pre-apply.d/01-configsnap-pre 
+    mode: 0755
+    regexp: configsnap.*pre
+    line: /usr/sbin/configsnap --silent -d /root -t auter-configsnap-$(date +%Y-%m-%d) -p pre
+
+- name: create configsnap post apply script
+  tags: configure,configsnap
+  lineinfile: 
+    create: yes
+    state: present
+    dest: /etc/auter/post-apply.d/50-configsnap-post-apply
+    mode: 0755
+    regexp: configsnap.*post-update
+    line: /usr/sbin/configsnap -d /root -t auter-configsnap-$(date +%Y-%m-%d) -p post-update &> /root/auter-configsnap-$(date +%Y-%m-%d)/configsnap/post-update.compare
+
+- name: delete old configsnap pre reboot script if it exists
+  tags: configure,configsnap
+  file:
+    state: absent
+    dest: /etc/auter/pre-reboot.d/99-configsnap-pre-reboot
+
+- name: create configsnap pre reboot script
+  tags: configure,configsnap
+  blockinfile:
+    backup: no
+    create: yes
+    state: present
+    mode: 0755
+    marker: "# {mark} ANSIBLE MANAGED AUTER BLOCK"
+    dest: /etc/auter/pre-reboot.d/98-configsnap-pre-reboot
+    block: |2
+      if find /root/auter-configsnap-$(date +%Y-%m-%d)/configsnap/ -name "*.pre" &>/dev/null; then
+        exit 0
+      else
+        logger -p info -t auter "INFO: Configsnap pre-apply files missing, running $0 for post-reboot diff."
+        /usr/sbin/configsnap --silent -d /root -t auter-configsnap-$(date +%Y-%m-%d) -p pre
+        exit 0
+      fi
+  no_log: true
+
+- name: create configsnap post reboot script
+  tags: configure,configsnap
+  lineinfile: 
+    create: yes
+    state: present
+    dest: /etc/auter/post-reboot.d/99-configsnap-post-reboot
+    mode: 0755
+    regexp: configsnap.*post-reboot
+    line: '/usr/sbin/configsnap -d /root -t auter-configsnap-$(date +%Y-%m-%d) -p post-reboot &> /root/auter-configsnap-$(date +%Y-%m-%d)/configsnap/post-reboot.compare'
+

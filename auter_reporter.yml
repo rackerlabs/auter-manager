@@ -1,0 +1,11 @@
+---
+
+# Creates a report for Auter on targe devices.
+# The results are written in file <report_auter_HOSTNAME_YYYY-MM-DD.csv>
+
+- hosts: all
+  gather_facts: False
+
+  roles:
+    - auter_reporter
+    

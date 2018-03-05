@@ -1,0 +1,215 @@
+- name: Control if variable 'reboot' is not easily assimilable to a boolean
+  tags: prechecks,apply
+  assert:
+    that: 
+      - reboot|lower|regex_search('^(yes|no|true|false)$')
+
+- name: Set variable forcereboot according to input
+  tags: prechecks,prep,apply
+  set_fact:
+    forcereboot: "{{ (reboot|bool) | ternary('--reboot','') }}"
+
+- name: Pre-check if server has configuration set in CSV file for cron scheduling
+  tags: prechecks,prep,apply
+  become: False
+  changed_when: False
+  local_action: command grep ^{{ inventory_hostname.split(':')[0] }}, {{ csv_file }}
+
+## PREP check
+- name: Lookup schedule prep_hour from the CSV file
+  tags: prechecks,prep
+  set_fact:
+    prep_hour: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=6 delimiter=,').split(':')[0] }}"
+
+- name: Fail if server's schedule prep_hour is invalid
+  tags: prechecks,prep
+  fail:
+    msg: schedule prep_hour for {{ inventory_hostname }} is invalid
+  when:
+    prep_hour|int < 0 or prep_hour|int > 23
+
+- name: Lookup schedule prep_minute from the CSV file
+  tags: prechecks,prep
+  set_fact:
+    prep_minute: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=6 delimiter=,').split(':')[1] }}"
+
+- name: Fail if server's schedule prep_minute is invalid
+  tags: prechecks,prep
+  fail:
+    msg: schedule prep_minute for {{ inventory_hostname }} is invalid
+  when:
+    prep_minute|int < 0 or prep_minute|int > 59
+
+- name: Lookup schedule prep_month from the CSV file
+  tags: prechecks,prep
+  set_fact:
+    prep_month: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=8 delimiter=,') }}"
+- name: set month to '*' if empty value in the CSV file
+  tags: prechecks,prep
+  set_fact:
+    prep_month: "*"
+  when: prep_month == ""
+
+#- debug: var=prep_month
+#  tags: schedule
+#- debug: var=prep_month|regex_search('(^\*$)|^([1-9]|1[012])((\-([1-9]$|1[012]$))|(\,([1-9]|1[012]))+)')
+#  tags: schedule
+  
+- name: Fail if server's schedule prep_month is invalid
+  tags: prechecks,prep
+  fail:
+    msg: schedule prep_month for {{ inventory_hostname }} is invalid
+  when:
+    prep_month|regex_search('(^\*$)|^([1-9]|1[012])((\-([1-9]$|1[012]$))|(\,([1-9]|1[012]))+)') != prep_month
+
+- name: == PREP == Lookup schedule day from the CSV file
+  tags: cron,prep
+  set_fact:
+    prep_day: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=7 delimiter=,').split(':')[0] | lower }}"
+  failed_when: prep_day == ""
+
+## APPLY check
+- name: Lookup schedule apply_hour from the CSV file
+  tags: prechecks,apply
+  set_fact:
+    apply_hour: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=9 delimiter=,').split(':')[0] }}"
+
+- name: Fail if server's schedule apply_hour is invalid
+  tags: prechecks,apply
+  fail:
+    msg: schedule apply_hour for {{ inventory_hostname }} is invalid
+  when:
+    apply_hour|int < 0 or apply_hour|int > 23
+
+- name: Lookup schedule apply_minute from the CSV file
+  tags: prechecks,apply
+  set_fact:
+    apply_minute: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=9 delimiter=,').split(':')[1] }}"
+
+- name: Fail if server's schedule apply_minute is invalid
+  tags: prechecks,apply
+  fail:
+    msg: schedule apply_minute for {{ inventory_hostname }} is invalid
+  when:
+    apply_minute|int < 0 or apply_minute|int > 59
+
+- name: Lookup schedule apply_month from the CSV file
+  tags: prechecks,apply
+  set_fact:
+    apply_month: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=11 delimiter=,') }}"
+- name: set month to '*' if empty value in the CSV file
+  tags: prechecks,apply
+  set_fact:
+    apply_month: "*"
+  when: apply_month == ""
+
+#- debug: var=apply_month
+#  tags: schedule
+#- debug: var=apply_month|regex_search('(^\*$)|^([1-9]|1[012])((\-([1-9]$|1[012]$))|(\,([1-9]|1[012]))+)')
+#  tags: schedule
+  
+- name: Fail if server's schedule apply_month is invalid
+  tags: prechecks,apply
+  fail:
+    msg: schedule apply_month for {{ inventory_hostname }} is invalid
+  when:
+    apply_month|regex_search('(^\*$)|^([1-9]|1[012])((\-([1-9]$|1[012]$))|(\,([1-9]|1[012]))+)') != apply_month
+
+- name: == APPLY == Lookup schedule day from the CSV file
+  tags: cron,apply
+  set_fact:
+    apply_day: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=10 delimiter=,').split(':')[0] | lower }}"
+  failed_when: apply_day == ""
+
+###########################################
+## Pre-checks have been done, going forward
+###########################################
+
+- name: Decide if we need to check for a weekday+occurrence or a fixed day of the month
+  tags: cron,prep
+  set_fact: 
+    prep_numberday: "{{ prep_day | regex_search('[1-9]+') }}"
+  
+#- debug: var=prep_numberday
+
+- name: == PREP == Set up occurence variable if prep day is a labeled day
+  tags: cron,prep
+  set_fact:
+    prep_occurrence: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=7 delimiter=,').split(':')[1] | lower }}"
+  when: prep_numberday == ""
+  failed_when: occur_cron[prep_occurrence] == "" or day_cron[prep_day] == ""
+
+- name: == PREP == Prep is on a fixed numbered day
+  tags: cron,prep
+  set_fact:
+    prep_cron: '{ "description": "prep auter", "minute": "{{ prep_minute }}", "hour": "{{ prep_hour }}", "day": "{{ prep_day }}", "weekday": "*", "month": "{{ prep_month }}", "user": "root", "job": "auter --prep" }'
+  when: prep_numberday != ""
+  failed_when: prep_numberday|int < 1 or prep_numberday|int > 28
+
+- name: == PREP == Prep is on a fixed labeled day
+  tags: cron,prep
+  set_fact:
+    prep_cron: '{ "description": "prep auter", "minute": "{{ prep_minute }}", "hour": "{{ prep_hour }}", "day": "{{ occur_cron[prep_occurrence] }}", "weekday": "*", "month": "{{ prep_month }}", "user": "root", "job": "[[ $(date +\%u) -eq {{ day_cron[prep_day] }} ]] &&  auter --prep" }'
+  when: prep_numberday == ""
+
+#- debug: var=prep_cron
+
+- name: Decide if we need to check for a weekday+occurrence or a fixed day of the month
+  tags: cron,apply
+  set_fact: 
+    apply_numberday: "{{ apply_day | regex_search('[0-9]+') }}"
+
+  #- debug: var=apply_numberday
+  #  tags: cron,apply
+
+- name: == APPLY == Set up occurence variable if apply day is a labeled day
+  tags: cron,apply
+  set_fact:
+    apply_occurrence: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=10 delimiter=,').split(':')[1] | lower }}"
+  when: apply_numberday == ""
+
+- name: == APPLY == Apply is on a fixed numbered day
+  tags: cron,apply
+  set_fact:
+    apply_cron: '{ "description": "apply auter", "minute": "{{ apply_minute }}", "hour": "{{ apply_hour }}", "day": "{{ apply_day }}", "weekday": "*", "month": "{{ apply_month }}", "user": "root", "job": "auter --apply {{ forcereboot }}" }'
+  when: apply_numberday != ""
+  failed_when: apply_numberday|int < 1 or apply_numberday|int > 28
+
+- name: == APPLY == Apply is on a fixed labeled day
+  tags: cron,apply
+  set_fact:
+          apply_cron: '{ "description": "apply auter", "minute": "{{ apply_minute }}", "hour": "{{ apply_hour }}", "day": "{{ occur_cron[apply_occurrence] }}", "weekday": "*", "month": "{{ apply_month }}", "user": "root", "job": "[[ $(date +\%u) -eq {{ day_cron[apply_day] }} ]] &&  auter --apply {{ forcereboot }}" }'
+  when: apply_numberday == ""
+
+#- debug: var=apply_cron
+
+## Splitting into two task so that we can use specific tags 'prep' or 'apply'
+- name: Add cron jobs as defined by the server's schedule group
+  tags: cron,prep
+  cron: 
+    name: "{{ item.description }}"
+    cron_file: "/etc/cron.d/auter"
+    minute: "{{ item.minute }}"
+    hour: "{{ item.hour }}"
+    day: "{{ item.day }}"
+    weekday: "{{ item.weekday }}"
+    month: "{{ item.month }}"
+    user: "{{ item.user }}"
+    job: "{{ item.job }}"
+  with_items: 
+    - "{{ prep_cron}}"
+  
+- name: Add cron jobs as defined by the server's schedule group
+  tags: cron,apply
+  cron: 
+    name: "{{ item.description }}"
+    cron_file: "/etc/cron.d/auter"
+    minute: "{{ item.minute }}"
+    hour: "{{ item.hour }}"
+    day: "{{ item.day }}"
+    weekday: "{{ item.weekday }}"
+    month: "{{ item.month }}"
+    user: "{{ item.user }}"
+    job: "{{ item.job }}"
+  with_items: 
+    - "{{ apply_cron }}"
