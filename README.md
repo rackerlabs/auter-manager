@@ -23,7 +23,7 @@ The playbooks require a csv file to run (`auter_config.csv` by default). A templ
 | labtest4 |  | yes |  | 300 | yes | 02:00 | monday:first | "1-11" | 01:00 | monday:second | 1-11 |
 
 Things to consider when filling the csv file:
-1. fields from **PREPTIME** onwards are only mandatory if you use playbook auter_scheduler.yml or meta_playbook auter_manager.yml
+1. fields from **PREPTIME** onwards are only mandatory if you use playbook `auter_scheduler.yml` or the meta playbook `auter_manager.yml`.
 1. you cannot use cron notation '\*/n' to define periodicity, but ',' and '-' are supported for month setting -- be mindful of wrapping setting it in " " if using comma ','.
 1. PREPDAY and APPLYDAY can be entered either as a single number (1 to 28) or as a pair separated by colon `:` 
 `<lettered_day_of_the_week:nth_occurence>` (occurence among `first`,`second`,`third`,`fourth`)
