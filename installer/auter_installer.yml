@@ -22,6 +22,7 @@
         - configsnap
       shell: time yum repolist | grep epel | wc -l
       register: epelPresent
+      changed_when: False
 
     - name: add the rs-epel repo
       tags:
@@ -155,6 +156,7 @@
         - auter
       shell: "auter --status"
       register: auterStatus
+      changed_when: False
 
     - name: enable auter
       tags:
