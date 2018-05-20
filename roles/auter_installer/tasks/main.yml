@@ -10,7 +10,8 @@
   tags: prechecks,auter,configsnap
   shell: time yum repolist | grep epel | wc -l
   register: epelPresent
-  changed_when: epelPresent.rc != 0
+  changed_when: False
+  # basically always return OK during execution
 
 - name: add the rs-epel repo
   tags: auter,configsnap
@@ -20,7 +21,7 @@
     name: rs-epel-release
     state: latest
   when: epelPresent.stdout|int == 0
-  
+
 - name: add the epel repo
   tags: auter,configsnap
   yum:

@@ -34,7 +34,8 @@
   tags: auter
   shell: "auter --status"
   register: auterStatus
-  changed_when: auterStatus.rc != 0
+  changed_when: False
+  # basically always return OK during execution
 
 - name: enable auter
   tags: auter
