@@ -12,6 +12,7 @@
   register: epelPresent
   changed_when: False
   # basically always return OK during execution
+  changed_when: epelPresent.rc != 0
 
 - name: add the rs-epel repo
   tags: auter,configsnap
