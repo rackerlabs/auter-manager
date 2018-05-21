@@ -8,17 +8,17 @@
 
 - name: create configsnap pre apply script
   tags: configure,configsnap
-  lineinfile: 
+  lineinfile:
     create: yes
     state: present
-    dest: /etc/auter/pre-apply.d/01-configsnap-pre 
+    dest: /etc/auter/pre-apply.d/01-configsnap-pre
     mode: 0755
     regexp: configsnap.*pre
     line: /usr/sbin/configsnap --silent -d /root -t auter-configsnap-$(date +%Y-%m-%d) -p pre
 
 - name: create configsnap post apply script
   tags: configure,configsnap
-  lineinfile: 
+  lineinfile:
     create: yes
     state: present
     dest: /etc/auter/post-apply.d/50-configsnap-post-apply
@@ -53,7 +53,7 @@
 
 - name: create configsnap post reboot script
   tags: configure,configsnap
-  lineinfile: 
+  lineinfile:
     create: yes
     state: present
     dest: /etc/auter/post-reboot.d/99-configsnap-post-reboot
