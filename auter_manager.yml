@@ -5,7 +5,7 @@
 #   - install / configure auter, configsnap and nimbus
 #   - set up auter prep and apply schedules
 #
-# All configuration should be present in a csv file matching 
+# All configuration should be present in a csv file matching
 # auter_config_template.csv format/definition.
 
 - hosts: all
