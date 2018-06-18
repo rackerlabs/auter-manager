@@ -28,7 +28,7 @@
   yum:
     name: epel-release
     state: latest
-  when: ( '"No Package" in result.msg' ) and epelPresent.stdout == 0
+  when: ( "no package" in result.msg|lower ) and epelPresent.stdout|int == 0
 
 - import_tasks: auter.yml
 - import_tasks: configsnap.yml
