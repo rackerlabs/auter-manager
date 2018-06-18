@@ -39,7 +39,7 @@
       tags:
         - auter
         - configsnap
-      when: ( '"No Package" in result.msg' ) and epelPresent.stdout == 0
+      when: ( 'no package' in result.msg|lower ) and epelPresent.stdout|int == 0
       yum:
         name: epel-release
         state: latest
