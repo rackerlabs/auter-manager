@@ -12,7 +12,6 @@
   register: epelPresent
   changed_when: False
   # basically always return OK during execution
-  changed_when: epelPresent.rc != 0
 
 - name: add the rs-epel repo
   tags: auter,configsnap
@@ -28,7 +27,9 @@
   yum:
     name: epel-release
     state: latest
-  when: ( "no package" in result.msg|lower ) and epelPresent.stdout|int == 0
+  when: >
+    epelPresent.stdout|int == 0 and
+    "no package" in result.msg|lower
 
 - import_tasks: auter.yml
 - import_tasks: configsnap.yml
