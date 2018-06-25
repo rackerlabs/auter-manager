@@ -34,16 +34,18 @@
         name: rs-epel-release
         state: latest
       when: epelPresent.stdout|int == 0
-      
+
     - name: add the epel repo
       tags:
         - auter
         - configsnap
-      when: ( '"No Package" in result.msg' ) and epelPresent.stdout == 0
+      when: >
+        epelPresent.stdout|int == 0 and
+        "no package" in result.msg | lower
       yum:
         name: epel-release
         state: latest
-      
+
     - name: install auter
       tags:
         - auter
