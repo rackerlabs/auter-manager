@@ -1,41 +1,52 @@
 ---
 - hosts: all
   gather_facts: False
-  vars:
-    csv_file: ./auter-audit.csv
-    
+
+  vars_prompt:
+    name: reportName
+    prompt: Report name
+    default: default
+    private: no
+
   tasks:
-    - local_action: 'shell date +%D'
+    - name: Generate Date
+      local_action: 'shell date +%d-%m-%y'
+      delegate_to: localhost
+      run_once: true
       become: False
-      register: currentdate
+      register: ReportDate
 
-    - debug: 
-        var: currentdate
+    - set_fact:
+        csv_file: ./auter-audit-{{ reportName }}-{{ ReportDate.stdout }}.csv
+
+    - delegate_to: localhost
+      run_once: true
+      debug:
+        var: csv_file
 
 
-    - script: ./auter-audit.sh -c
+    - name: Run the audit script
+      script: ./auter-audit.sh -c
       become: True
       register: auter_audit_output
-     
-#    - debug: msg={{ auter_audit_output.stdout_lines[4] }}
 
-    - local_action: stat path={{ csv_file }}-{{ currentdate }}
-      become: False
-      register: csv
+#    - debug:
+#        msg: "{{ auter_audit_output.stdout_lines[4] }}"
 
     - name: Write header
+      delegate_to: localhost
+      run_once: true
       local_action: lineinfile
                     create=yes
                     state=present
-                    dest={{ csv_file }}-{{ currentdate }}
+                    dest={{ csv_file }}
                     line='Hostname,Version,Status,LastUpdate'
-      when: csv.stat.exists == False
 
     - name: Append output to CSV file
       local_action: lineinfile
-                    create=yes
+                    create=no
                     state=present
-                    dest={{ csv_file }}-{{ currentdate }}
+                    dest={{ csv_file }}
                     line={{ auter_audit_output.stdout_lines[4] }}
 ...
 
