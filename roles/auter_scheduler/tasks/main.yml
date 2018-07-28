@@ -142,14 +142,14 @@
 - name: == PREP == Prep is on a fixed numbered day
   tags: cron,prep
   set_fact:
-    prep_cron: '{ "description": "prep auter", "minute": "{{ prep_minute }}", "hour": "{{ prep_hour }}", "day": "{{ prep_day }}", "weekday": "*", "month": "{{ prep_month }}", "user": "root", "job": "auter --prep" }'
+    prep_cron: '{ "description": "prep auter", "minute": "{{ prep_minute }}", "hour": "{{ prep_hour }}", "day": "{{ prep_day }}", "weekday": "*", "month": "{{ prep_month }}", "user": "root", "job": "/usr/sbin/auter --prep" }'
   when: prep_numberday != ""
   failed_when: prep_numberday|int < 1 or prep_numberday|int > 28
 
 - name: == PREP == Prep is on a fixed labeled day
   tags: cron,prep
   set_fact:
-    prep_cron: '{ "description": "prep auter", "minute": "{{ prep_minute }}", "hour": "{{ prep_hour }}", "day": "{{ occur_cron[prep_occurrence] }}", "weekday": "*", "month": "{{ prep_month }}", "user": "root", "job": "[[ $(date +\%u) -eq {{ day_cron[prep_day] }} ]] &&  auter --prep" }'
+    prep_cron: '{ "description": "prep auter", "minute": "{{ prep_minute }}", "hour": "{{ prep_hour }}", "day": "{{ occur_cron[prep_occurrence] }}", "weekday": "*", "month": "{{ prep_month }}", "user": "root", "job": "[[ $(date +\%u) -eq {{ day_cron[prep_day] }} ]] &&  /usr/sbin/auter --prep" }'
   when: prep_numberday == ""
 
 #- debug: var=prep_cron
@@ -171,14 +171,14 @@
 - name: == APPLY == Apply is on a fixed numbered day
   tags: cron,apply
   set_fact:
-    apply_cron: '{ "description": "apply auter", "minute": "{{ apply_minute }}", "hour": "{{ apply_hour }}", "day": "{{ apply_day }}", "weekday": "*", "month": "{{ apply_month }}", "user": "root", "job": "auter --apply {{ forcereboot }}" }'
+    apply_cron: '{ "description": "apply auter", "minute": "{{ apply_minute }}", "hour": "{{ apply_hour }}", "day": "{{ apply_day }}", "weekday": "*", "month": "{{ apply_month }}", "user": "root", "job": "/usr/sbin/auter --apply {{ forcereboot }}" }'
   when: apply_numberday != ""
   failed_when: apply_numberday|int < 1 or apply_numberday|int > 28
 
 - name: == APPLY == Apply is on a fixed labeled day
   tags: cron,apply
   set_fact:
-          apply_cron: '{ "description": "apply auter", "minute": "{{ apply_minute }}", "hour": "{{ apply_hour }}", "day": "{{ occur_cron[apply_occurrence] }}", "weekday": "*", "month": "{{ apply_month }}", "user": "root", "job": "[[ $(date +\%u) -eq {{ day_cron[apply_day] }} ]] &&  auter --apply {{ forcereboot }}" }'
+          apply_cron: '{ "description": "apply auter", "minute": "{{ apply_minute }}", "hour": "{{ apply_hour }}", "day": "{{ occur_cron[apply_occurrence] }}", "weekday": "*", "month": "{{ apply_month }}", "user": "root", "job": "[[ $(date +\%u) -eq {{ day_cron[apply_day] }} ]] &&  /usr/sbin/auter --apply {{ forcereboot }}" }'
   when: apply_numberday == ""
 
 #- debug: var=apply_cron
