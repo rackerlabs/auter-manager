@@ -1,7 +1,7 @@
 - name: Control if variable 'reboot' is not easily assimilable to a boolean
   tags: prechecks,apply
   assert:
-    that: 
+    that:
       - reboot|lower|regex_search('^(yes|no|true|false)$')
 
 - name: Set variable forcereboot according to input
@@ -54,7 +54,7 @@
 #  tags: schedule
 #- debug: var=prep_month|regex_search('(^\*$)|^([1-9]|1[012])((\-([1-9]$|1[012]$))|(\,([1-9]|1[012]))+)')
 #  tags: schedule
-  
+
 - name: Fail if server's schedule prep_month is invalid
   tags: prechecks,prep
   fail:
@@ -107,7 +107,7 @@
 #  tags: schedule
 #- debug: var=apply_month|regex_search('(^\*$)|^([1-9]|1[012])((\-([1-9]$|1[012]$))|(\,([1-9]|1[012]))+)')
 #  tags: schedule
-  
+
 - name: Fail if server's schedule apply_month is invalid
   tags: prechecks,apply
   fail:
@@ -127,9 +127,9 @@
 
 - name: Decide if we need to check for a weekday+occurrence or a fixed day of the month
   tags: cron,prep
-  set_fact: 
+  set_fact:
     prep_numberday: "{{ prep_day | regex_search('[1-9]+') }}"
-  
+
 #- debug: var=prep_numberday
 
 - name: == PREP == Set up occurence variable if prep day is a labeled day
@@ -149,14 +149,14 @@
 - name: == PREP == Prep is on a fixed labeled day
   tags: cron,prep
   set_fact:
-    prep_cron: '{ "description": "prep auter", "minute": "{{ prep_minute }}", "hour": "{{ prep_hour }}", "day": "{{ occur_cron[prep_occurrence] }}", "weekday": "*", "month": "{{ prep_month }}", "user": "root", "job": "[[ $(date +\%u) -eq {{ day_cron[prep_day] }} ]] &&  /usr/sbin/auter --prep" }'
+    prep_cron: '{ "description": "prep auter", "minute": "{{ prep_minute }}", "hour": "{{ prep_hour }}", "day": "{{ occur_cron[prep_occurrence] }}", "weekday": "*", "month": "{{ prep_month }}", "user": "root", "job": "[ $(date +\%u) -eq {{ day_cron[prep_day] }} ] &&  /usr/sbin/auter --prep" }'
   when: prep_numberday == ""
 
 #- debug: var=prep_cron
 
 - name: Decide if we need to check for a weekday+occurrence or a fixed day of the month
   tags: cron,apply
-  set_fact: 
+  set_fact:
     apply_numberday: "{{ apply_day | regex_search('[0-9]+') }}"
 
   #- debug: var=apply_numberday
@@ -178,7 +178,7 @@
 - name: == APPLY == Apply is on a fixed labeled day
   tags: cron,apply
   set_fact:
-          apply_cron: '{ "description": "apply auter", "minute": "{{ apply_minute }}", "hour": "{{ apply_hour }}", "day": "{{ occur_cron[apply_occurrence] }}", "weekday": "*", "month": "{{ apply_month }}", "user": "root", "job": "[[ $(date +\%u) -eq {{ day_cron[apply_day] }} ]] &&  /usr/sbin/auter --apply {{ forcereboot }}" }'
+          apply_cron: '{ "description": "apply auter", "minute": "{{ apply_minute }}", "hour": "{{ apply_hour }}", "day": "{{ occur_cron[apply_occurrence] }}", "weekday": "*", "month": "{{ apply_month }}", "user": "root", "job": "[ $(date +\%u) -eq {{ day_cron[apply_day] }} ] &&  /usr/sbin/auter --apply {{ forcereboot }}" }'
   when: apply_numberday == ""
 
 #- debug: var=apply_cron
@@ -186,7 +186,7 @@
 ## Splitting into two task so that we can use specific tags 'prep' or 'apply'
 - name: Add cron jobs as defined by the server's schedule group
   tags: cron,prep
-  cron: 
+  cron:
     name: "{{ item.description }}"
     cron_file: "/etc/cron.d/auter"
     minute: "{{ item.minute }}"
@@ -196,12 +196,12 @@
     month: "{{ item.month }}"
     user: "{{ item.user }}"
     job: "{{ item.job }}"
-  with_items: 
+  with_items:
     - "{{ prep_cron}}"
-  
+
 - name: Add cron jobs as defined by the server's schedule group
   tags: cron,apply
-  cron: 
+  cron:
     name: "{{ item.description }}"
     cron_file: "/etc/cron.d/auter"
     minute: "{{ item.minute }}"
@@ -211,5 +211,5 @@
     month: "{{ item.month }}"
     user: "{{ item.user }}"
     job: "{{ item.job }}"
-  with_items: 
+  with_items:
     - "{{ apply_cron }}"
