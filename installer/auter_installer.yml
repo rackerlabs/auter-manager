@@ -175,7 +175,7 @@
         - numbus
       set_fact:
         nimbus_path: "{{ nimbus_details.stat.path }}"
-      when: nimbus_details.stat.exists == True
+      when: nimbus_path is not defined and nimbus_details.stat.exists == True
 
     - name: Create nimbus monitors in "{{ nimbus_path }}"
       tags:
