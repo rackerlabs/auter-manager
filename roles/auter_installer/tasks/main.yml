@@ -1,7 +1,9 @@
 ---
 
 - name: Pre-check if server has configuration set in CSV file
-  tags: prechecks
+  tags:
+    - prechecks
+    - install
   become: False
   changed_when: False
   local_action: command grep ^{{ inventory_hostname.split(':')[0] }}, {{ csv_file }}
@@ -14,7 +16,10 @@
   # basically always return OK during execution
 
 - name: add the rs-epel repo
-  tags: auter,configsnap
+  tags:
+    - auter
+    - configsnap
+    - install
   failed_when: False
   register: result
   yum:
@@ -23,7 +28,10 @@
   when: epelPresent.stdout|int == 0
 
 - name: add the epel repo
-  tags: auter,configsnap
+  tags:
+    - auter
+    - configsnap
+    - install
   yum:
     name: epel-release
     state: latest
@@ -32,6 +40,18 @@
     "no package" in result.msg|lower
 
 - import_tasks: auter.yml
+  tags:
+    - auter
+    - install
 - import_tasks: configsnap.yml
+  tags:
+    - install
+    - configure
+    - configsnap
 - import_tasks: nimbus.yml
+  tags:
+    - install
+    - configure
+    - nimbus
 
+...
