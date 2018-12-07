@@ -171,7 +171,7 @@
       tags:
         - configure
         - numbus
-      stat: path=/opt/nimbus/probes/system/logmon/logmon.cfg
+      stat: path=/opt/nimbus
       register: nimbus_details
 
     - name: set path variable to use /opt/nimbus
@@ -180,13 +180,15 @@
         - numbus
       set_fact:
         nimbus_path: "{{ nimbus_details.stat.path }}"
-      when: nimbus_details.stat.exists == True
+      when: >
+        nimbus_details.stat.exists == True
+        and nimbus_details.stat.islnk == False
 
     - name: check if nimbus path is /opt/nimsoft
       tags:
         - configure
         - numbus
-      stat: path=/opt/nimsoft/probes/system/logmon/logmon.cfg
+      stat: path=/opt/nimsoft
       register: nimbus_details
       when: nimbus_path is not defined
 
@@ -196,7 +198,9 @@
         - numbus
       set_fact:
         nimbus_path: "{{ nimbus_details.stat.path }}"
-      when: nimbus_details.stat.exists == True
+      when: >
+        nimbus_details.stat.exists == True
+        and nimbus_details.stat.islnk == False
 
     - name: Create nimbus monitors in "{{ nimbus_path }}"
       tags:
@@ -206,7 +210,7 @@
         backup: yes
         insertbefore: "</profiles>"
         marker: "# {mark} ANSIBLE MANAGED AUTER BLOCK"
-        dest: /opt/nimsoft/probes/system/logmon/logmon.cfg
+        dest: "{{ nimbus_path }}/probes/system/logmon/logmon.cfg"
         block: |2
              <auter_monitors>
                 active = yes
