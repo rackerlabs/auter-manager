@@ -2,35 +2,36 @@
 
 # This section can be used if you have nimbus installed and configured
 - name: Check if nimbus path is /opt/nimbus
-  tags: configure,nimbus
-  stat: path=/opt/nimbus/probes/system/logmon/logmon.cfg
+  stat: path=/opt/nimbus
   register: nimbus_details
 
 - name: set path variable to use /opt/nimbus
   tags: configure,nimbus
   set_fact:
     nimbus_path: "{{ nimbus_details.stat.path }}"
-  when: nimbus_details.stat.exists == True
+  when: >
+    nimbus_details.stat.exists == True
+    and nimbus_details.stat.islnk == False
 
 - name: check if nimbus path is /opt/nimsoft
-  tags: configure,nimbus
-  stat: path=/opt/nimsoft/probes/system/logmon/logmon.cfg
+  stat: path=/opt/nimsoft
   register: nimbus_details
   when: nimbus_path is not defined
 
-- name: set path variable to is /opt/nimsoft
-  tags: configure,nimbus
+- name: set path variable to use /opt/nimsoft
   set_fact:
     nimbus_path: "{{ nimbus_details.stat.path }}"
-  when: nimbus_details.stat.exists == True
+  when: >
+    nimbus_details.stat.exists == True
+    and nimbus_details.stat.islnk == False
 
-- name: Create nimbus monitors in "{{ nimbus_path }}"
-  tags: configure,nimbus
+- name: Create nimbus monitors in "{{ nimbus_path }}" if the file exists
   blockinfile:
     backup: yes
     insertbefore: "</profiles>"
     marker: "# {mark} ANSIBLE MANAGED AUTER BLOCK"
-    dest: /opt/nimsoft/probes/system/logmon/logmon.cfg
+    dest: "{{ nimbus_path }}/probes/system/logmon/logmon.cfg"
+    create: no
     block: |2
          <auter_monitors>
             active = yes
@@ -88,13 +89,11 @@
   when: nimbus_path is defined
 
 - name: get number of nimbus processes
-  tags: configure,nimbus
   shell: "ps aux | grep -c nimbus"
   register: nimbusProcessCountPre
   when: nimbus_path is defined and nimbus_updated.changed
 
 - name: restart nimbus
-  tags: configure,nimbus
   failed_when: False
   service:
     enabled: yes
