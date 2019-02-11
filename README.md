@@ -38,6 +38,6 @@ Things to consider when filling the csv file:
 - `auter_reporter.yml` is an easy way to gather information on Auter status and latest use for any number of devices. The result file will be place into sub-directory **output**.
 
 ## Why csv format?
-Using the csv file should make it easy to keep configuration reference easily readable from a spreadsheet editor, so that it can be maintained by non-tech people.
+Using the csv file should make it easy to keep configuration reference easily readable from a spreadsheet editor, so that it can be maintained by non-tech people.  
 **note:** you should not add/remove any columns or the playbook execution will break. The csv file should suffice as the only source for Auter installation / configuration / scheduling.
 

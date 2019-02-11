@@ -1,11 +1,5 @@
 ---
 
-- name: Pre-check if server has configuration set in CSV file for cron scheduling
-  tags: prechecks
-  become: False
-  changed_when: False
-  local_action: command grep ^{{ inventory_hostname.split(':')[0] }}, {{ csv_file }}
-
 - name: install auter
   yum:
     name: auter
@@ -25,7 +19,7 @@
 - name: add warning to not edit yum.conf exclude manually
   lineinfile:
     backup: yes
-    line: "# WARNING: if set in the csv file, the excludes line is edited by auter_installer everytime it is run"
+    line: "# WARNING: if set in the csv file (non-empty value), the 'exclude' line is edited by auter_installer playbook everytime it is run."
     insertbefore: "^exclude="
     dest: /etc/yum.conf
   when: yum_excludes != ""
