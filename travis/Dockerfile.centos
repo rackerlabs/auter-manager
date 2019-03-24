@@ -4,14 +4,5 @@ FROM centos
 RUN echo "Updating OS"
 RUN yum update -y
 RUN echo "Installing required packages"
-RUN yum install -y openssh-server ansible
-RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -t rsa
-RUN ssh-keygen -f /etc/ssh/ssh_host_dsa_key -N '' -t dsa
-RUN ssh-keygen -f /etc/ssh/ssh_host_ed25519_key -N '' -t ed25519
-RUN echo "Setting root password and allowing connections"
-RUN sed -i 's/^PermitRootLogin no/PermitRootLogin yes/' /etc/ssh/sshd_config
-RUN chpasswd <<< "root:secretpassword"
-
-# Start sshd
-CMD /usr/sbin/sshd -4 -D
+RUN yum install -y ansible
 
