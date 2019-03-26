@@ -3,7 +3,7 @@
 - name: Pre-check if server has configuration set in CSV file (for excludes)
   become: False
   changed_when: False
-  local_action: command grep ^{{ inventory_hostname.split(':')[0] }}, {{ csv_file }}
+  local_action: command grep ^{{ inventory_hostname.split(':')[0] }}, {{ ini_csv_file }}
 
 - name: Check if epel repo is present
   tags:
