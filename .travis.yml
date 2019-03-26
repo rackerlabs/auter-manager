@@ -13,24 +13,36 @@ before_install:
 script:
   - container_id=$(mktemp)
 
+#############################################
+## Testing Installation + Scheduling of Auter
+#############################################
   - sudo docker run --detach --interactive --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --volume="${PWD}":/etc/ansible testingauter:centos > "${container_id}"
-
   - sudo docker exec "$(cat ${container_id})" env ANSIBLE_FORCE_COLOR=1 ansible-playbook -v /etc/ansible/auter_manager.yml --syntax-check -i /etc/ansible/travis/test.inv -l localhost
-
   - sudo docker exec "$(cat ${container_id})" env ANSIBLE_FORCE_COLOR=1 ansible-playbook -v /etc/ansible/auter_manager.yml -e "ini_csv_file=travis/test_auter_config.csv ini_reboot=no" -i /etc/ansible/travis/test.inv -l localhost
-
   - >
     sudo docker exec "$(cat ${container_id})" env ANSIBLE_FORCE_COLOR=1 ansible-playbook -v /etc/ansible/auter_manager.yml -e "ini_csv_file=/etc/ansible/travis/test_auter_config.csv ini_reboot=no" -i /etc/ansible/travis/test.inv -l localhost
     | grep -q 'changed=0.*failed=0'
     && (echo 'Idempotence test: pass' && exit 0)
     || (echo 'Idempotence test: fail' && exit 1)
-
   - sudo docker exec "$(cat ${container_id})" sh -c "/usr/bin/egrep -v '^$|^#' /etc/auter/auter.conf /etc/cron.d/auter | tee /etc/ansible/travis/config_result"
   - sudo docker exec "$(cat ${container_id})" sh -c "/usr/bin/auter --status | tee -a /etc/ansible/travis/config_result"
-
   #- sudo docker exec "$(cat ${container_id})" /usr/bin/md5sum /etc/ansible/travis/config_result
   - sudo docker exec "$(cat ${container_id})" /usr/bin/md5sum -c /etc/ansible/travis/config_result.md5
 
+#############################################
+## Now testing schedule / cron update only
+#############################################
+  - sudo docker exec "$(cat ${container_id})" env ANSIBLE_FORCE_COLOR=1 ansible-playbook -v /etc/ansible/auter_scheduler.yml -e "ini_csv_file=travis/test_auter_scheduler.csv ini_reboot=no" -i /etc/ansible/travis/test.inv -l localhost
+  - >
+    sudo docker exec "$(cat ${container_id})" env ANSIBLE_FORCE_COLOR=1 ansible-playbook -v /etc/ansible/auter_scheduler.yml -e "ini_csv_file=/etc/ansible/travis/test_auter_scheduler.csv ini_reboot=no" -i /etc/ansible/travis/test.inv -l localhost
+    | grep -q 'changed=0.*failed=0'
+    && (echo 'Idempotence test: pass' && exit 0)
+    || (echo 'Idempotence test: fail' && exit 1)
+  - sudo docker exec "$(cat ${container_id})" sh -c "/usr/bin/egrep -v '^$|^#' /etc/auter/auter.conf /etc/cron.d/auter | tee /etc/ansible/travis/scheduler_result"
+  - sudo docker exec "$(cat ${container_id})" sh -c "/usr/bin/auter --status | tee -a /etc/ansible/travis/scheduler_result"
+  - sudo docker exec "$(cat ${container_id})" /usr/bin/md5sum -c /etc/ansible/travis/scheduler_result.md5
+
+## Cleaning up
   - sudo docker rm -f "$(cat ${container_id})"
 
 notifications:
