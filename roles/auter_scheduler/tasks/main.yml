@@ -4,34 +4,34 @@
   tags: prechecks,apply
   assert:
     that:
-      - reboot|lower|regex_search('^(yes|no|true|false)$')
+      - ini_reboot|lower|regex_search('^(yes|no|true|false)$')
 
 - name: Set variable forcereboot according to input
   tags: prechecks,prep,apply
   set_fact:
-    forcereboot: "{{ (reboot|bool) | ternary('--reboot','') }}"
+    forcereboot: "{{ (ini_reboot|bool) | ternary('--reboot','') }}"
 
 - name: Pre-check if server has configuration set in CSV file for cron scheduling
   tags: prechecks,prep,apply
   become: False
   changed_when: False
-  local_action: command grep ^{{ inventory_hostname.split(':')[0] }}, {{ csv_file }}
+  local_action: command grep ^{{ inventory_hostname.split(':')[0] }}, {{ ini_csv_file }}
 
 ## PREP facts
 - name: Lookup schedule prep_hour from the CSV file
   tags: prechecks,prep
   set_fact:
-    prep_hour: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=6 delimiter=,').split(':')[0] }}"
+    prep_hour: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + ini_csv_file + ' col=6 delimiter=,').split(':')[0] }}"
 
 - name: Lookup schedule prep_minute from the CSV file
   tags: prechecks,prep
   set_fact:
-    prep_minute: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=6 delimiter=,').split(':')[1] }}"
+    prep_minute: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + ini_csv_file + ' col=6 delimiter=,').split(':')[1] }}"
 
 - name: Lookup schedule prep_month from the CSV file
   tags: prechecks,prep
   set_fact:
-    prep_month: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=8 delimiter=,') }}"
+    prep_month: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + ini_csv_file + ' col=8 delimiter=,') }}"
 - name: set month to '*' if empty value in the CSV file
   tags: prechecks,prep
   set_fact:
@@ -41,23 +41,23 @@
 - name: == PREP == Lookup schedule day from the CSV file
   tags: cron,prep
   set_fact:
-    prep_day: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=7 delimiter=,').split(':')[0] | lower }}"
+    prep_day: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + ini_csv_file + ' col=7 delimiter=,').split(':')[0] | lower }}"
 
 ## APPLY facts
 - name: Lookup schedule apply_hour from the CSV file
   tags: prechecks,apply
   set_fact:
-    apply_hour: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=9 delimiter=,').split(':')[0] }}"
+    apply_hour: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + ini_csv_file + ' col=9 delimiter=,').split(':')[0] }}"
 
 - name: Lookup schedule apply_minute from the CSV file
   tags: prechecks,apply
   set_fact:
-    apply_minute: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=9 delimiter=,').split(':')[1] }}"
+    apply_minute: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + ini_csv_file + ' col=9 delimiter=,').split(':')[1] }}"
 
 - name: Lookup schedule apply_month from the CSV file
   tags: prechecks,apply
   set_fact:
-    apply_month: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=11 delimiter=,') }}"
+    apply_month: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + ini_csv_file + ' col=11 delimiter=,') }}"
 - name: set month to '*' if empty value in the CSV file
   tags: prechecks,apply
   set_fact:
@@ -67,27 +67,25 @@
 - name: == APPLY == Lookup schedule day from the CSV file
   tags: cron,apply
   set_fact:
-    apply_day: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=10 delimiter=,').split(':')[0] | lower }}"
+    apply_day: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + ini_csv_file + ' col=10 delimiter=,').split(':')[0] | lower }}"
 
 ###########################################
 ## Pre-requisite assertions
 ###########################################
-#- debug: var=apply_month
-#  tags: schedule
-#- debug:
-#    msg: "apply_month = {{ apply_month|regex_search('(^\\*$)|^([1-9]|1[012])((\\-([1-9]$|1[012]$))|(\\,([1-9]|1[012]))+|$)') }}"
-#  tags: schedule
+- debug: var=apply_month
+- debug:
+    msg: "apply_month = {{ apply_month|regex_search('(^\\*$)|^(1[012]|[1-9])((\\-([1-9]$|1[012]$))|(\\,(1[012]|[1-9]))+|$)') }}"
 
 - name: check that cron-related variables are correctly set
   assert:
     that:
       - prep_hour|int >= 0 and prep_hour|int <= 23
       - prep_minute|int >= 0 and prep_minute|int <= 59
-      - prep_month|regex_search('(^\*$)|^([1-9]|1[012])($|(\-([1-9]$|1[012]$))|(\,([1-9]|1[012]))+)') == prep_month
+      - prep_month|regex_search('(^\*$)|^([1-9]|1[012])($|(\-([1-9]$|1[012]$))|(\,(1[012]|[1-9]))+)') == prep_month
       - prep_day != ""
       - apply_hour|int >= 0 and apply_hour|int <= 23
       - apply_minute|int >= 0 and apply_minute|int <= 59
-      - apply_month|regex_search('(^\*$)|^([1-9]|1[012])($|(\-([1-9]$|1[012]$))|(\,([1-9]|1[012]))+)') == apply_month
+      - apply_month|regex_search('(^\*$)|^([1-9]|1[012])($|(\-([1-9]$|1[012]$))|(\,(1[012]|[1-9]))+)') == apply_month
       - apply_day != ""
     msg: "Could not validate the cron-related variables. Please check/correct the CSV file and try again."
     #fail_msg: "Could not validate the cron-related variables. Please check/correct the CSV file and try again."
@@ -105,7 +103,7 @@
 - name: == PREP == Set up occurence variable if prep day is a labeled day
   tags: cron,prep
   set_fact:
-    prep_occurrence: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=7 delimiter=,').split(':')[1] | lower }}"
+    prep_occurrence: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + ini_csv_file + ' col=7 delimiter=,').split(':')[1] | lower }}"
   when: prep_numberday == ""
   failed_when: occur_cron[prep_occurrence] == "" or day_cron[prep_day] == ""
 
@@ -130,7 +128,7 @@
 - name: == APPLY == Set up occurence variable if apply day is a labeled day
   tags: cron,apply
   set_fact:
-    apply_occurrence: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=10 delimiter=,').split(':')[1] | lower }}"
+    apply_occurrence: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + ini_csv_file + ' col=10 delimiter=,').split(':')[1] | lower }}"
   when: apply_numberday == ""
 
 - name: == APPLY == Apply is on a fixed numbered day

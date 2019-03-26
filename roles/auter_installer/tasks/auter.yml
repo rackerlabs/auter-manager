@@ -14,7 +14,7 @@
 - name: Check if csv contains yum excludes
   tags: yum
   set_fact:
-    yum_excludes: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + csv_file + ' col=1 delimiter=,') }}"
+    yum_excludes: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + ini_csv_file + ' col=1 delimiter=,') }}"
 
 - name: add warning to not edit yum.conf exclude manually
   lineinfile:

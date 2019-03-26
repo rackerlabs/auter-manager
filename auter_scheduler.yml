@@ -17,11 +17,11 @@
   become: True
   gather_facts: False
   vars_prompt:
-    - name: "csv_file"
+    - name: "ini_csv_file"
       prompt: "Enter config file (defaults to ./auter_config.csv)"
       default: "./auter_config.csv"
       private: no
-    - name: "reboot"
+    - name: "ini_reboot"
       prompt: "Should we systematically reboot on 'auter --apply'? (This will trigger reboot and associated scritps even if there are no available updates) <yes|no>"
       default: False
       private: no
