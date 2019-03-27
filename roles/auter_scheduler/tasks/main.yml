@@ -1,17 +1,17 @@
 ---
 
-- name: Control if variable 'reboot' is not easily assimilable to a boolean
+## ALWAYSREBOOT fact
+- name: Set variable forcereboot according to input
   tags: prechecks,apply
-  assert:
-    that:
-      - ini_reboot|lower|regex_search('^(yes|no|true|false)$')
+  set_fact:
+    getreboot: "{{ lookup('csvfile', inventory_hostname.split(':')[0] + ' file=' + ini_csv_file + ' col=12 delimiter=,') }}"
 
 - name: Set variable forcereboot according to input
   tags: prechecks,prep,apply
   set_fact:
-    forcereboot: "{{ (ini_reboot|bool) | ternary('--reboot','') }}"
+    forcereboot: "{{ getreboot | bool | ternary('--reboot','') }}"
 
-- name: Pre-check if server has configuration set in CSV file for cron scheduling
+- name: Pre-check that server has configuration set in CSV file
   tags: prechecks,prep,apply
   become: False
   changed_when: False
@@ -72,9 +72,9 @@
 ###########################################
 ## Pre-requisite assertions
 ###########################################
-- debug: var=apply_month
-- debug:
-    msg: "apply_month = {{ apply_month|regex_search('(^\\*$)|^(1[012]|[1-9])((\\-([1-9]$|1[012]$))|(\\,(1[012]|[1-9]))+|$)') }}"
+#- debug: var=apply_month
+#- debug:
+#    msg: "apply_month = {{ apply_month|regex_search('(^\\*$)|^(1[012]|[1-9])((\\-([1-9]$|1[012]$))|(\\,(1[012]|[1-9]))+|$)') }}"
 
 - name: check that cron-related variables are correctly set
   assert:
