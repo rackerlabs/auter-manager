@@ -16,10 +16,6 @@
       prompt: "Enter config file (defaults to ./auter_config.csv)"
       default: "./auter_config.csv"
       private: no
-    - name: "ini_reboot"
-      prompt: "Should we systematically reboot on 'auter --apply'? (This will trigger reboot and associated scritps even if there are no available updates) <yes|no>"
-      default: False
-      private: no
 
   # Need to do this to get variables usable in both playbooks
   pre_tasks:
@@ -27,10 +23,6 @@
       tags: install,schedule
       set_fact:
         csv_file: '{{ ini_csv_file }}'
-    - name: set variable reboot for all plays
-      tags: schedule
-      set_fact:
-        reboot: '{{ ini_reboot }}'
 
   roles:
     - { role: auter_installer, tags: ['install'] }

@@ -1,5 +1,5 @@
-NAME,EXCLUDES,AUTOREBOOT,PACKAGEMANAGEROPTIONS,MAXDELAY,INSTALLFROMPREPONLY,PREPTIME,PREPDAY,PREPMONTH,APPLYTIME,APPLYDAY,APPLYMONTH
-labtest1,,yes,,300,yes,01:00,1,1-11,00:10,monday:second,1-11
-labtest2,,yes,,300,no,01:00,1,,00:10,monday:second,
-labtest3,kernel*,no,,300,yes,01:00,15,"1,3,5,7,9,11",00:10,1,"2,4,6,8,10,12"
-labtest4,,yes,,300,yes,02:00,monday:first,"1-11",01:00,monday:second,1-11
+NAME,EXCLUDES,AUTOREBOOT,PACKAGEMANAGEROPTIONS,MAXDELAY,INSTALLFROMPREPONLY,PREPTIME,PREPDAY,PREPMONTH,APPLYTIME,APPLYDAY,APPLYMONTH,ALWAYSREBOOT
+labtest1,,yes,,300,yes,01:00,1,1-11,00:10,monday:second,1-11,
+labtest2,,yes,,300,no,01:00,1,,00:10,monday:second,,
+labtest3,kernel*,no,,300,yes,01:00,15,"1,3,5,7,9,11",00:10,1,"2,4,6,8,10,12",yes
+labtest4,,yes,,300,yes,02:00,monday:first,"1-11",01:00,monday:second,1-11,yes
