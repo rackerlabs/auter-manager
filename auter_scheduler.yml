@@ -1,0 +1,28 @@
+---
+
+# This playbook creates / updates a cron job for 'auter --prep' and
+# 'auter --apply' into /etc/cron.d/auter
+
+# The scheduling period must be defined in file ./auter_config.csv (see
+# auter_config.template.csv for examples)
+
+# Assumptions / Limitations:
+# - auter prep and apply can be set up to run at most once a month when
+#   using this playbook
+# - you cannot use '*/n' to define periodicity (but ',' and '-' are supported for
+#   month setting - be mindful of wrapping setting it in " " if using comma ',').
+
+- hosts: all
+  tags: schedule
+  become: True
+  gather_facts: False
+  vars_prompt:
+    - name: "ini_csv_file"
+      prompt: "Enter config file (defaults to ./auter_config.csv)"
+      default: "./auter_config.csv"
+      private: no
+
+  roles:
+    - auter_scheduler
+
+...

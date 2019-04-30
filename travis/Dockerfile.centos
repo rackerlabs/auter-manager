@@ -1,0 +1,8 @@
+# Prepping for auter deploy
+
+FROM centos
+RUN echo "Updating OS"
+RUN yum update -y
+RUN echo "Installing required packages"
+RUN yum install -y ansible
+

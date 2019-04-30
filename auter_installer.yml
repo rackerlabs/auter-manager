@@ -1,0 +1,27 @@
+---
+
+# This playbook sets up required repository for installing and further
+# configuring Auter on the RHEL device.
+#
+# It includes all tasks to install auter and other related tools such as:
+# - nimbus monitoring setup for auter
+# - installation of configsnap, used to save state of server before and after reboot
+#
+# note: this not include cron scheduling. See auter_scheduler.yml for that.
+#
+# All configuration should be present in a csv file matching 
+# auter_config_template.csv format/definition.
+
+- hosts: all
+  tags: install
+  become: True
+  gather_facts: False
+  vars_prompt:
+    - name: ini_csv_file
+      prompt: "Enter config file (defaults to ./auter_config.csv)"
+      default: "./auter_config.csv"
+      private: no
+
+  roles:
+    - auter_installer
+
