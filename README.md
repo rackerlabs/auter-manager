@@ -20,10 +20,11 @@ The playbooks require a csv file to run (`auter_config.csv` by default). A templ
 | labtest1 |  | yes |  | 300 | yes | 01:00 | 1 | 1-11 | 00:10 | monday:second | 1-11 | |
 | labtest2 |  | yes |  | 300 | no | 01:00 | 1 |  | 00:10 | monday:second |  | |
 | labtest3 | kernel\* | no |  | 300 | yes | 01:00 | 15 | "1,3,5,7,9,11" | 00:10 | 1 | "2,4,6,8,10,12" | yes |
-| labtest4 |  | yes |  | 300 | yes | 02:00 | monday:first | "1-11" | 01:00 | monday:second | 1-11 | yes |
+| labtest4 | "" | yes |  | 300 | yes | 02:00 | monday:first | "1-11" | 01:00 | monday:second | 1-11 | yes |
 
-> **Important**
-Whenever setting a list of values, be mindful of wrapping the values with double quotes (`" "`) if using comma (`,`) inside a field (cf _labtest3_ in sample table).
+**Important**
+- Whenever setting a list of values, be mindful of wrapping the values with double quotes (`" "`) if using comma (`,`) inside a field (cf _labtest3_ in sample table).
+- Setting a value of `""` or `''` for _EXCLUDES_ field (ex: _labtest4_ above) will **remove** any existing excludes.
 
 Things to consider when filling the csv file:
 1. `auter-prep` and `auter-apply` can be set up to run at most once a month when using this playbook.
