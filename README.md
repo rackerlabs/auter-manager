@@ -61,6 +61,9 @@ Things to consider when filling the csv file:
 - `auter_scheduler.yml` on its own handles the crontab configuration for the two main fonctions of Auter: prep and apply. The play will write the cron scheduling into file **/etc/cron.d/auter**
 - `auter_reporter.yml` is an easy way to gather information on Auter status and latest use for any number of devices. The result file will be place into sub-directory **output**.
 
+**note:** From v1.2 onwards, the `auter_scheduler.yml` play will pause and warn when deployed over a device which has _auter_ either disabled or not installed. The play will carry on after 10 seconds anyway.
+
 ## Why csv format?
 Using the csv file should make it easy to keep configuration reference easily readable from a spreadsheet editor, so that it can be maintained by non-tech people.  
 **note:** you should not add/remove any columns or the playbook execution will break. The csv file should suffice as the only source for Auter installation / configuration / scheduling.
+
