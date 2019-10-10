@@ -15,7 +15,5 @@ RUN echo "Updating OS"
 RUN dnf update -y
 RUN echo "Installing required packages"
 RUN dnf install -y python3 python3-pip
-# well, it's gonna be root anyway here
-RUN pip3 install ansible --user
-
+RUN pip3 install ansible
 
