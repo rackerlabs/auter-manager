@@ -1,8 +1,21 @@
 # Prepping for auter deploy
 
+## Latest is CentOS 8, coming with dnf and no python/python3 binary and no ansible package in repo
+
+# CentOS 7
+#FROM centos
+#RUN echo "Updating OS"
+#RUN yum update -y
+#RUN echo "Installing required packages"
+#RUN yum install -y ansible
+
+# CentOS 8
 FROM centos
 RUN echo "Updating OS"
-RUN yum update -y
+RUN dnf update -y
 RUN echo "Installing required packages"
-RUN yum install -y ansible
+RUN dnf install -y python3 python3-pip
+# well, it's gonna be root anyway here
+RUN pip3 install ansible --user
+
 
