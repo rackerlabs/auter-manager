@@ -2,18 +2,17 @@
 
 ## Latest is CentOS 8, coming with dnf and no python/python3 binary and no ansible package in repo
 
-# CentOS 7
+## CentOS 8, no Auter there yet
 #FROM centos
 #RUN echo "Updating OS"
-#RUN yum update -y
+#RUN dnf update -y
 #RUN echo "Installing required packages"
-#RUN yum install -y ansible
+#RUN dnf install -y python3 python3-pip
+#RUN pip3 install ansible
 
-# CentOS 8
-FROM centos
+# CentOS 7
+FROM centos7
 RUN echo "Updating OS"
-RUN dnf update -y
+RUN yum update -y
 RUN echo "Installing required packages"
-RUN dnf install -y python3 python3-pip
-RUN pip3 install ansible
-
+RUN yum install -y ansible
