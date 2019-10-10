@@ -5,53 +5,38 @@
   changed_when: False
   local_action: command grep ^{{ inventory_hostname.split(':')[0] }}, {{ ini_csv_file }}
 
-#- name: Check if epel repo is present
-#  tags:
-#    - auter
-#    - configsnap
-#  shell: time yum repolist | grep epel | wc -l
-#  register: epelPresent
-#  changed_when: False
-#  # basically always return OK during execution
+- name: Check if epel repo is present
+  tags:
+    - auter
+    - configsnap
+  shell: time yum repolist | grep epel | wc -l
+  register: epelPresent
+  changed_when: False
+  # basically always return OK during execution
 
-
-
-- name: ensure epel repository is present, from Rackspace or main repo
+- name: add the rs-epel repo
   tags:
     - auter
     - configsnap
     - install
-  block:
-    - yum:
-        name: rs-epel-release
-        state: latest
-  rescue:
-    - yum:
-        name: epel-release
-        state: latest
+  failed_when: False
+  register: result
+  yum:
+    name: rs-epel-release
+    state: latest
+  when: epelPresent.stdout|int == 0
 
-#- name: add the rs-epel repo
-#  tags:
-#    - auter
-#    - configsnap
-#    - install
-#  failed_when: False
-#  register: result
-#  yum:
-#    name: rs-epel-release
-#    state: latest
-#  when: epelPresent.stdout|int == 0
-#
-#- name: add the epel repo
-#  tags:
-#    - auter
-#    - configsnap
-#    - install
-#  yum:
-#    name: epel-release
-#    state: latest
-#  when: >
-#    epelPresent.stdout|int == 0 and
-#    "no package" in result.msg|lower
+- name: add the epel repo
+  tags:
+    - auter
+    - configsnap
+    - install
+  yum:
+    name: epel-release
+    state: latest
+  when: >
+    epelPresent.stdout|int == 0 and
+    ("no package" in result.msg|lower or
+    "no package" in result.failures|lower)
 
 ...
