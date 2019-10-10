@@ -11,7 +11,7 @@
 #RUN pip3 install ansible
 
 # CentOS 7
-FROM centos7
+FROM centos:centos7
 RUN echo "Updating OS"
 RUN yum update -y
 RUN echo "Installing required packages"
