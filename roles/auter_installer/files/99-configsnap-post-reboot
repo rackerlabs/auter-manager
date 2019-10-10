@@ -1,0 +1,12 @@
+DEST='/root'
+# look for the latest configsnap pre, no further than an hour ago
+PRE=$(find ${DEST} -type d -name "auter-configsnap-*" -mmin -60 | tail -n1)
+
+if [[ -z "${PRE}" || ! -d ${PRE} ]]; then
+  logger -p warn -t auter "configsnap prep ${DEST}/${PRE} not found. There will be no comparison."
+  PRE=auter-configsnap-$(date +%Y-%m-%d)
+  /usr/sbin/configsnap -d ${DEST} -t ${PRE} -p post-reboot
+else
+  PRE=$(basename "${PRE}")
+  /usr/sbin/configsnap -d ${DEST} -t ${PRE} -p post-reboot &> ${DEST}/${PRE}/configsnap/post-reboot.compare
+fi
