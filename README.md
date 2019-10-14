@@ -1,14 +1,5 @@
 # auter-manager
 
-## Cloning this branch of the repository
-This branch is a refreshed write of the current master branch, converting the Ansible playbook into the '/roles' recommended tree structure.
-
-The easiest way to set up branch 'modular' is to directly clone the branch into a new dedicated directory.
-For example:
-```
-git clone -b modular git@github.com:rackerlabs/auter-manager.git auter-manager_modular
-```
-
 ## Presentation
 This repo contains ansible playbooks to install and configure [Auter](https://github.com/rackerlabs/auter) on RHEL-derivative devices through automation using a single csv file to handle configuration settings.
 ![csv screenshot](auter_config_template.csv-LibreOffice_Calc.png)
