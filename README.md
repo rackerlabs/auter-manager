@@ -45,7 +45,6 @@ Things to consider when filling the csv file:
 | APPLYMONTH | Month(s) to execute `auter-apply` | None |
 | ALWAYSREBOOT | Should the device systematically be rebooted after patching? ==This option superseeds **AUTOREBOOT**.==  | `no` |
 
-
 ## Playbooks
 - `auter_manager.yml` loads up `auter_installer` and `auter_scheduler` roles to install, configure and schedule Auter based on devices configured in the CSV file. It is intended to be the 'default' playbook to use to set up everything in one go.
 - `auter_install.yml` will install and configure Auter based on devices configured in the CSV file.

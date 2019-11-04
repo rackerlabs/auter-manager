@@ -36,6 +36,7 @@
     state: latest
   when: >
     epelPresent.stdout|int == 0 and
-    "no package" in result.msg|lower
+    ("no package" in result.msg|lower or
+    "no package" in result.failures|lower)
 
 ...
