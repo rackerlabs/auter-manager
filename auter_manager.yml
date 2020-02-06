@@ -18,7 +18,7 @@
       private: no
 
   roles:
-    - { role: auter_installer, tags: ['install'] }
-    - { role: auter_scheduler, tags: ['schedule'] }
+    - { role: auter_installer, tags: [ install ] }
+    - { role: auter_scheduler, tags: [ schedule ] }
 
 ...
