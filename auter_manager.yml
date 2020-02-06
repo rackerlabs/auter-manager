@@ -17,14 +17,8 @@
       default: "./auter_config.csv"
       private: no
 
-  # Need to do this to get variables usable in both playbooks
-  pre_tasks:
-    - name: set variable csv_file for all plays
-      tags: install,schedule
-      set_fact:
-        csv_file: '{{ ini_csv_file }}'
-
   roles:
     - { role: auter_installer, tags: ['install'] }
     - { role: auter_scheduler, tags: ['schedule'] }
 
+...
