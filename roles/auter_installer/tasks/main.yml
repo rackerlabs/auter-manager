@@ -1,23 +1,13 @@
 ---
 
 - import_tasks: prepare.yml
-  tags:
-    - prechecks
-    - prepare
+  tags: [ prechecks, prepare ]
 
 - import_tasks: auter.yml
-  tags:
-    - auter
-    - install
+  tags: [ auter, install ]
 - import_tasks: configsnap.yml
-  tags:
-    - install
-    - configure
-    - configsnap
+  tags: [ install, configure, configsnap ]
 - import_tasks: nimbus.yml
-  tags:
-    - install
-    - configure
-    - nimbus
+  tags: [ install, configure, nimbus ]
 
 ...

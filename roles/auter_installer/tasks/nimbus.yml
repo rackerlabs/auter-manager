@@ -6,7 +6,6 @@
   register: nimbus_details
 
 - name: set path variable to use /opt/nimbus
-  tags: configure,nimbus
   set_fact:
     nimbus_path: "{{ nimbus_details.stat.path }}"
   when: >
