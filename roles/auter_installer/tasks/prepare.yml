@@ -12,6 +12,12 @@
   changed_when: False
   # basically always return OK during execution
 
+  # compatible with ansible < 2.8
+- name: Fail if check command did not return an output
+  fail:
+    msg: The epel repo check count did not return an ouput, please investigate on the device.
+  when: epelPresent.stdout is not defined
+
 - name: add the rs-epel repo
   tags: [ auter, configsnap, install ]
   failed_when: False
