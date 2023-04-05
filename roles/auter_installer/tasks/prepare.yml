@@ -23,7 +23,7 @@
   failed_when: False
   register: result
   yum:
-    name: rs-epel-release
+    name: epel-release-rackspace
     state: latest
   when: epelPresent.stdout|int == 0
 
@@ -34,7 +34,6 @@
     state: latest
   when: >
     epelPresent.stdout|int == 0 and
-    ("no package" in result.msg|lower or
-    "no package" in result.failures|lower)
+    "no package" in result.msg|lower
 
 ...
